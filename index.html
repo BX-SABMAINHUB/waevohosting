@@ -1,118 +1,622 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>WaevoHosting</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      background: #0b0e1a;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      padding: 1.5rem;
-    }
-    .card {
-      background: #141b2b;
-      max-width: 700px;
-      width: 100%;
-      padding: 3rem 2.5rem;
-      border-radius: 2rem;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
-      border: 1px solid #2a3550;
-      text-align: center;
-    }
-    .logo {
-      font-size: 2.2rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #a78bfa, #60a5fa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 0.5rem;
-    }
-    .badge {
-      display: inline-block;
-      background: #1e2a44;
-      color: #94a3b8;
-      font-size: 0.8rem;
-      font-weight: 600;
-      padding: 0.3rem 1rem;
-      border-radius: 999px;
-      letter-spacing: 0.02em;
-      border: 1px solid #2a3550;
-      margin-bottom: 1.5rem;
-    }
-    h1 {
-      font-size: 1.8rem;
-      font-weight: 600;
-      color: #f1f5f9;
-      margin-bottom: 0.75rem;
-    }
-    p {
-      color: #94a3b8;
-      font-size: 1.1rem;
-      line-height: 1.6;
-      margin-bottom: 2rem;
-    }
-    .loader {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 0.6rem;
-      margin: 1.5rem 0;
-    }
-    .dot {
-      width: 12px;
-      height: 12px;
-      background: #60a5fa;
-      border-radius: 50%;
-      animation: pulse 1.2s ease-in-out infinite;
-    }
-    .dot:nth-child(2) { animation-delay: 0.2s; background: #a78bfa; }
-    .dot:nth-child(3) { animation-delay: 0.4s; background: #f472b6; }
-    @keyframes pulse {
-      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-      40% { transform: scale(1); opacity: 1; }
-    }
-    .footer {
-      margin-top: 2rem;
-      font-size: 0.85rem;
-      color: #475569;
-      border-top: 1px solid #1e2a44;
-      padding-top: 1.5rem;
-    }
-    .footer span {
-      color: #60a5fa;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaevoHosting · Web & Bot Hosting</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0b0e14;
+            color: #e0e5ee;
+            line-height: 1.6;
+            scroll-behavior: smooth;
+        }
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* ===== UTILITIES ===== */
+        .section-tag {
+            display: inline-block;
+            background: rgba(124, 108, 240, 0.15);
+            color: #a78bfa;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0.3rem 1rem;
+            border-radius: 999px;
+            border: 1px solid rgba(124, 108, 240, 0.2);
+            margin-bottom: 0.75rem;
+        }
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.75rem;
+        }
+        .section-title span {
+            background: linear-gradient(135deg, #a78bfa, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .section-desc {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            max-width: 600px;
+        }
+        .btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, #7c6cf0, #5b4ad0);
+            color: #fff;
+            font-weight: 600;
+            padding: 0.9rem 2.2rem;
+            border-radius: 2rem;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.2s;
+            box-shadow: 0 4px 20px rgba(124, 108, 240, 0.3);
+            font-size: 1rem;
+        }
+        .btn-primary:hover {
+            transform: scale(1.03);
+            box-shadow: 0 6px 30px rgba(124, 108, 240, 0.4);
+        }
+        .btn-secondary {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.06);
+            color: #e0e5ee;
+            font-weight: 500;
+            padding: 0.9rem 2.2rem;
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: background 0.2s, border 0.2s;
+            font-size: 1rem;
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* ===== HEADER / NAV ===== */
+        header {
+            padding: 1.2rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: sticky;
+            top: 0;
+            background: rgba(11, 14, 20, 0.85);
+            backdrop-filter: blur(12px);
+            z-index: 100;
+        }
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+        .logo span {
+            background: linear-gradient(135deg, #a78bfa, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            list-style: none;
+        }
+        .nav-links a {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #94a3b8;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover {
+            color: #e0e5ee;
+        }
+        .nav-links .btn-primary {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.85rem;
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            padding: 5rem 0 4rem 0;
+            text-align: center;
+            background: radial-gradient(ellipse at 50% 0%, #141b2b, #0b0e14 70%);
+        }
+        .hero h1 {
+            font-size: 3.8rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            max-width: 850px;
+            margin: 0 auto 1.2rem;
+        }
+        .hero h1 span {
+            background: linear-gradient(135deg, #a78bfa, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: #94a3b8;
+            max-width: 650px;
+            margin: 0 auto 2rem;
+        }
+        .hero-badge {
+            display: inline-block;
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.3rem 1.2rem;
+            border-radius: 999px;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            margin-bottom: 1.5rem;
+        }
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* ===== SECTIONS GENERAL ===== */
+        section {
+            padding: 4rem 0;
+        }
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .section-header .section-desc {
+            margin: 0 auto;
+        }
+
+        /* ===== ABOUT ===== */
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+        .about-text h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .about-text p {
+            color: #94a3b8;
+            margin-bottom: 1.2rem;
+        }
+        .about-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .stat-item {
+            background: rgba(18, 24, 38, 0.6);
+            border-radius: 1.2rem;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #a78bfa;
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+        .about-image {
+            background: linear-gradient(135deg, rgba(124, 108, 240, 0.1), rgba(96, 165, 250, 0.05));
+            border-radius: 2rem;
+            padding: 2.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+            font-size: 3rem;
+            color: #a78bfa;
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ===== SERVICES ===== */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+        .service-card {
+            background: rgba(18, 24, 38, 0.6);
+            border-radius: 1.5rem;
+            padding: 2.2rem 1.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .service-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(124, 108, 240, 0.3);
+        }
+        .service-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .service-card h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .service-card p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+        .service-badge {
+            display: inline-block;
+            background: rgba(245, 158, 11, 0.12);
+            color: #fbbf24;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.8rem;
+            border-radius: 999px;
+            margin-top: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* ===== PLANS ===== */
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .plan-card {
+            background: rgba(18, 24, 38, 0.6);
+            border-radius: 1.5rem;
+            padding: 2.2rem 1.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            text-align: center;
+        }
+        .plan-card.featured {
+            border-color: rgba(124, 108, 240, 0.4);
+            background: rgba(18, 24, 38, 0.8);
+            position: relative;
+        }
+        .plan-card.featured .plan-badge {
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            background: linear-gradient(135deg, #7c6cf0, #5b4ad0);
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.2rem 1rem;
+            border-radius: 999px;
+            text-transform: uppercase;
+        }
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .plan-price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #e0e5ee;
+            margin: 1rem 0;
+        }
+        .plan-price span {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #94a3b8;
+        }
+        .plan-features {
+            list-style: none;
+            text-align: left;
+            margin: 1.5rem 0 2rem;
+            padding: 0;
+        }
+        .plan-features li {
+            padding: 0.4rem 0;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .plan-features li::before {
+            content: "✓";
+            color: #a78bfa;
+            font-weight: 700;
+        }
+
+        /* ===== CONTACT ===== */
+        .contact-box {
+            background: rgba(18, 24, 38, 0.6);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .contact-box a {
+            color: #a78bfa;
+            font-weight: 500;
+            word-break: break-all;
+        }
+        .contact-box a:hover {
+            text-decoration: underline;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 2.5rem 0;
+            margin-top: 2rem;
+            text-align: center;
+            color: #475569;
+            font-size: 0.85rem;
+        }
+        footer a {
+            color: #94a3b8;
+        }
+        footer a:hover {
+            color: #e0e5ee;
+        }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.4rem;
+            }
+            .about-grid {
+                grid-template-columns: 1fr;
+            }
+            .about-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+            .section-title {
+                font-size: 2rem;
+            }
+            .nav-links {
+                gap: 1rem;
+            }
+            .nav-links a:not(.btn-primary) {
+                display: none;
+            }
+        }
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+            .hero-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            .about-stats {
+                grid-template-columns: 1fr;
+            }
+            .plans-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="card">
-    <div class="logo">WaevoHosting</div>
-    <div class="badge">🚧 EN CONSTRUCCIÓN</div>
-    <h1>Estamos creando algo increíble</h1>
-    <p>
-      Nuestra plataforma está siendo preparada para ofrecerte el mejor
-      <strong>web hosting</strong> y <strong>bot hosting</strong>.
-      Vuelve pronto.
-    </p>
-    <div class="loader">
-      <span class="dot"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
+
+<!-- ===== HEADER ===== -->
+<header>
+    <div class="container header-inner">
+        <div class="logo"><span>Waevo</span>Hosting</div>
+        <ul class="nav-links">
+            <li><a href="#about">Sobre nosotros</a></li>
+            <li><a href="#services">Servicios</a></li>
+            <li><a href="#plans">Planes</a></li>
+            <li><a href="#contact">Contacto</a></li>
+            <li><a href="https://panel.waevohosting.es" class="btn-primary" target="_blank">Ir al panel</a></li>
+        </ul>
     </div>
-    <div class="footer">
-      <span>waevohosting.es</span> · 2026
+</header>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-badge">🚀 Fase Beta · Próximamente</div>
+        <h1>Hosting de <span>próxima generación</span> para bots y webs</h1>
+        <p>WaevoHosting es una plataforma nueva y en desarrollo que te permite alojar tus bots de Discord y sitios web con la máxima flexibilidad. Estamos en beta, pero nuestro compromiso con la calidad es total.</p>
+        <div class="hero-actions">
+            <a href="https://panel.waevohosting.es" class="btn-primary" target="_blank">Ir al panel</a>
+            <a href="#about" class="btn-secondary">Descubrir más</a>
+        </div>
     </div>
-  </div>
+</section>
+
+<!-- ===== ABOUT ===== -->
+<section id="about">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">Sobre nosotros</span>
+            <h2 class="section-title">La nueva era del <span>hosting</span></h2>
+            <p class="section-desc">Somos un equipo apasionado por la tecnología y el rendimiento. Nuestra misión es ofrecer hosting accesible, potente y fácil de usar para desarrolladores y creadores de contenido.</p>
+        </div>
+        <div class="about-grid">
+            <div class="about-text">
+                <h3>Hosting en beta, <span style="color:#a78bfa;">calidad profesional</span></h3>
+                <p>WaevoHosting nace con la idea de democratizar el acceso a servidores de alto rendimiento. Actualmente estamos en fase beta, lo que significa que estamos puliendo cada detalle para ofrecerte la mejor experiencia.</p>
+                <p>Nuestro objetivo es que cualquier persona, desde un pequeño creador hasta una gran comunidad, pueda desplegar sus proyectos sin complicaciones.</p>
+                <div class="about-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Disponibilidad</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Soporte</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">Beta</div>
+                        <div class="stat-label">Fase activa</div>
+                    </div>
+                </div>
+            </div>
+            <div class="about-image">
+                <div>
+                    <div style="font-size:4rem;">⚡</div>
+                    <div style="font-size:1rem; color:#94a3b8; margin-top:0.5rem;">Infraestructura moderna</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== SERVICES ===== -->
+<section id="services" style="background: rgba(255,255,255,0.01);">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">Servicios</span>
+            <h2 class="section-title">Qué ofrecemos en <span>WaevoHosting</span></h2>
+            <p class="section-desc">Dos grandes áreas para cubrir todas tus necesidades de alojamiento, ya sea para tu comunidad de Discord o para tu presencia web.</p>
+        </div>
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-icon">🤖</div>
+                <h3>Bot Hosting</h3>
+                <p>Aloja tus bots de Discord con total control. Usamos Pterodactyl como panel de gestión, lo que te permite administrar recursos, logs y actualizaciones de forma sencilla.</p>
+                <span class="service-badge">En beta</span>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">🌐</div>
+                <h3>Web Hosting</h3>
+                <p>Despliega tus sitios web estáticos o dinámicos con herramientas modernas. Integración con Vercel para despliegues rápidos y gestiona dominios personalizados.</p>
+                <span class="service-badge">Próximamente</span>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">🛡️</div>
+                <h3>Seguridad y rendimiento</h3>
+                <p>Protegemos tus proyectos con Cloudflare, SSL automático y una infraestructura optimizada para que tu web o bot funcione siempre al máximo.</p>
+                <span class="service-badge">Incluido</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== PLANS ===== -->
+<section id="plans">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">Planes</span>
+            <h2 class="section-title">Elige tu <span>plan</span></h2>
+            <p class="section-desc">Actualmente estamos en beta, por lo que todos los planes son gratuitos mientras probamos y mejoramos la plataforma.</p>
+        </div>
+        <div class="plans-grid">
+            <div class="plan-card">
+                <div class="plan-name">Plan Gratis</div>
+                <div class="plan-price">0€ <span>/mes</span></div>
+                <ul class="plan-features">
+                    <li>Subdominio `usuario.waevohosting.es`</li>
+                    <li>1 bot de Discord o 1 web estática</li>
+                    <li>Recursos limitados (beta)</li>
+                    <li>Soporte por correo</li>
+                </ul>
+                <a href="https://panel.waevohosting.es" class="btn-primary" target="_blank" style="width:100%;">Comenzar</a>
+            </div>
+            <div class="plan-card featured">
+                <div class="plan-badge">Próximamente</div>
+                <div class="plan-name">Plan Premium</div>
+                <div class="plan-price">9,99€ <span>/mes</span></div>
+                <ul class="plan-features">
+                    <li>Dominio propio</li>
+                    <li>Múltiples bots / webs</li>
+                    <li>Recursos dedicados</li>
+                    <li>Soporte prioritario 24/7</li>
+                    <li>SSL y CDN incluidos</li>
+                </ul>
+                <a href="#contact" class="btn-secondary" style="width:100%;">Interesado</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== CONTACT ===== -->
+<section id="contact" style="background: rgba(255,255,255,0.01);">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">Contacto</span>
+            <h2 class="section-title">Hablemos</h2>
+            <p class="section-desc">Si tienes preguntas, sugerencias o quieres colaborar con nosotros, escríbenos. Estamos en fase beta y valoramos mucho tu feedback.</p>
+        </div>
+        <div class="contact-box">
+            <div style="font-size:2.5rem; margin-bottom:0.8rem;">📧</div>
+            <p style="color:#94a3b8; margin-bottom:0.5rem;">Correo de contacto</p>
+            <a href="mailto:contactnotifieralex@gmail.com">contactnotifieralex@gmail.com</a>
+            <p style="margin-top:1.5rem; font-size:0.9rem; color:#475569;">Respondemos en menos de 24 horas durante la fase beta.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+    <div class="container">
+        <div style="font-weight:600; font-size:1.2rem; margin-bottom:0.5rem;"><span style="color:#a78bfa;">Waevo</span>Hosting</div>
+        <p style="max-width:400px; margin:0 auto 1rem;">Hosting moderno para bots y webs. Construyendo el futuro, un despliegue a la vez.</p>
+        <div class="footer-links">
+            <a href="https://panel.waevohosting.es" target="_blank">Panel</a>
+            <a href="#about">Sobre nosotros</a>
+            <a href="#services">Servicios</a>
+            <a href="#contact">Contacto</a>
+        </div>
+        <p style="margin-top:1.5rem;">&copy; 2026 WaevoHosting. Todos los derechos reservados.</p>
+    </div>
+</footer>
+
+<!-- ===== SCROLL SUAVE ===== -->
+<script>
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) target.scrollIntoView({ behavior: 'smooth' });
+        });
+    });
+</script>
+
 </body>
 </html>
