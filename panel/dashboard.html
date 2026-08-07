@@ -4,227 +4,348 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WaevoHosting · Dashboard</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: #0b0e14;
             color: #e0e5ee;
             min-height: 100vh;
+            padding: 1.5rem;
         }
         .header {
-            background: rgba(11, 14, 20, 0.92);
-            backdrop-filter: blur(12px);
-            padding: 1rem 2rem;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        .logo { font-size: 1.3rem; font-weight: 700; }
-        .logo span { background: linear-gradient(135deg, #a78bfa, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .user-info { display: flex; align-items: center; gap: 1.5rem; }
-        .user-info .btn-logout {
-            background: rgba(239, 68, 68, 0.15);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            padding: 0.4rem 1.2rem;
-            border-radius: 2rem;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: background 0.2s;
-        }
-        .user-info .btn-logout:hover { background: rgba(239, 68, 68, 0.25); }
-        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
+            padding: 1rem 1.5rem;
+            background: rgba(18, 24, 38, 0.6);
+            border-radius: 1.2rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
             margin-bottom: 2rem;
         }
-        .stat-card {
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .header h1 span {
+            background: linear-gradient(135deg, #a78bfa, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .user-info .email {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.05);
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1.2rem;
+            border-radius: 0.8rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e5ee;
+        }
+        .card {
             background: rgba(18, 24, 38, 0.6);
-            border: 1px solid rgba(255,255,255,0.04);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 1.2rem;
             padding: 1.5rem;
-            text-align: center;
+            margin-bottom: 1.5rem;
         }
-        .stat-number { font-size: 2rem; font-weight: 700; color: #a78bfa; }
-        .stat-label { font-size: 0.85rem; color: #94a3b8; }
-        .servers-grid { display: grid; gap: 1rem; margin-top: 1.5rem; }
+        .card h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .card p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+        .servers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.2rem;
+            margin-top: 1rem;
+        }
         .server-card {
-            background: rgba(18, 24, 38, 0.6);
-            border: 1px solid rgba(255,255,255,0.04);
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 1rem;
-            padding: 1.2rem 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: border-color 0.2s;
-            flex-wrap: wrap;
-            gap: 0.5rem;
+            padding: 1.2rem;
+            transition: border-color 0.2s, transform 0.2s;
         }
-        .server-card:hover { border-color: rgba(124, 108, 240, 0.3); }
-        .server-name { font-weight: 600; }
-        .server-status { font-size: 0.85rem; padding: 0.2rem 0.8rem; border-radius: 999px; }
-        .server-status.running { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
-        .server-status.suspended { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
-        .server-status.offline { background: rgba(239, 68, 68, 0.15); color: #f87171; }
-        .server-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .server-card:hover {
+            border-color: rgba(124, 108, 240, 0.3);
+            transform: translateY(-2px);
+        }
+        .server-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
+        }
+        .server-status {
+            display: inline-block;
+            padding: 0.2rem 0.8rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin: 0.5rem 0;
+        }
+        .status-running {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+        }
+        .status-offline {
+            background: rgba(248, 113, 113, 0.15);
+            color: #f87171;
+        }
+        .status-suspended {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+        }
+        .server-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.8rem;
+        }
         .server-actions button {
-            background: rgba(255,255,255,0.05);
-            border: none;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             color: #94a3b8;
             padding: 0.3rem 0.8rem;
             border-radius: 0.5rem;
+            font-size: 0.75rem;
             cursor: pointer;
-            font-size: 0.8rem;
-            transition: background 0.2s;
+            transition: all 0.2s;
         }
-        .server-actions button:hover { background: rgba(255,255,255,0.1); color: #e0e5ee; }
-        .server-actions button.danger:hover { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-        .loading { text-align: center; padding: 3rem; color: #94a3b8; }
+        .server-actions button:hover {
+            background: rgba(124, 108, 240, 0.2);
+            border-color: rgba(124, 108, 240, 0.4);
+            color: #e0e5ee;
+        }
+        .loading {
+            text-align: center;
+            color: #94a3b8;
+            padding: 3rem 0;
+        }
+        .error-msg {
+            color: #f87171;
+            text-align: center;
+            padding: 1rem;
+        }
+        .empty-msg {
+            color: #475569;
+            text-align: center;
+            padding: 2rem 0;
+        }
+        .badge {
+            background: rgba(245, 158, 11, 0.12);
+            color: #fbbf24;
+            font-size: 0.6rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+        @media (max-width: 600px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+            .user-info {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="logo"><span>Waevo</span>Hosting</div>
+        <h1>Waevo<span>Hosting</span></h1>
         <div class="user-info">
-            <span id="userEmail" style="color:#94a3b8;font-size:0.9rem;"></span>
-            <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+            <span class="email" id="userEmail">cargando...</span>
+            <button class="btn-logout" id="logoutBtn">Cerrar sesión</button>
         </div>
     </div>
-    <div class="container">
-        <h2 style="font-weight:600;margin-bottom:0.5rem;">Dashboard</h2>
-        <p style="color:#94a3b8;margin-bottom:1.5rem;">Gestiona tus servidores y recursos desde aquí.</p>
-        
-        <div class="stats-grid">
-            <div class="stat-card"><div class="stat-number" id="totalServers">0</div><div class="stat-label">Servidores totales</div></div>
-            <div class="stat-card"><div class="stat-number" id="serversRunning">0</div><div class="stat-label">En ejecución</div></div>
-            <div class="stat-card"><div class="stat-number" id="serversSuspended">0</div><div class="stat-label">Suspendidos</div></div>
-        </div>
 
-        <h3 style="font-weight:600;margin-bottom:1rem;">Mis servidores</h3>
-        <div id="serversList"><div class="loading">Cargando servidores...</div></div>
+    <div class="card">
+        <h2>📊 Panel de control</h2>
+        <p>Bienvenido a tu panel de administración. Aquí puedes gestionar tus servidores y servicios.</p>
+    </div>
+
+    <div id="serversContainer">
+        <div class="loading">⏳ Cargando servidores...</div>
     </div>
 
     <script>
-        const API_URL = '/api/servers';
-        let servers = [];
+        // ============================================================
+        // 1. Verificar autenticación
+        // ============================================================
+        const token = localStorage.getItem('waevohosting_token');
+        const userData = JSON.parse(localStorage.getItem('waevohosting_user') || '{}');
 
-        async function fetchServers() {
-            const token = localStorage.getItem('waevohosting_token');
-            if (!token) { window.location.href = '/login.html'; return; }
-
-            try {
-                const response = await fetch(API_URL, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (response.status === 401) { localStorage.removeItem('waevohosting_token'); window.location.href = '/login.html'; return; }
-                const data = await response.json();
-                if (data.success) {
-                    servers = data.data || [];
-                    renderServers();
-                    updateStats();
-                } else {
-                    document.getElementById('serversList').innerHTML = `<div class="loading">❌ Error al cargar servidores: ${data.error}</div>`;
-                }
-            } catch (error) {
-                document.getElementById('serversList').innerHTML = `<div class="loading">❌ Error de conexión</div>`;
-                console.error(error);
-            }
-        }
-
-        function renderServers() {
-            const container = document.getElementById('serversList');
-            if (!servers.length) {
-                container.innerHTML = '<div class="loading">📭 No tienes servidores activos.</div>';
-                return;
-            }
-            container.innerHTML = servers.map(s => {
-                const status = s.attributes?.status || 'offline';
-                const statusMap = {
-                    'running': '🟢 En ejecución',
-                    'suspended': '🟡 Suspendido',
-                    'offline': '🔴 Apagado'
-                };
-                return `
-                    <div class="server-card">
-                        <div>
-                            <div class="server-name">${s.attributes?.name || s.name || 'Sin nombre'}</div>
-                            <span class="server-status ${status}">${statusMap[status] || status}</span>
-                        </div>
-                        <div class="server-actions">
-                            <button onclick="suspendServer('${s.id}')" ${status === 'suspended' ? 'disabled style="opacity:0.5"' : ''}>⏸️ Suspender</button>
-                            <button onclick="unsuspendServer('${s.id}')" ${status !== 'suspended' ? 'disabled style="opacity:0.5"' : ''}>▶️ Reanudar</button>
-                            <button class="danger" onclick="deleteServer('${s.id}')">🗑️</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function updateStats() {
-            const total = servers.length;
-            const running = servers.filter(s => s.attributes?.status === 'running').length;
-            const suspended = servers.filter(s => s.attributes?.status === 'suspended').length;
-            document.getElementById('totalServers').textContent = total;
-            document.getElementById('serversRunning').textContent = running;
-            document.getElementById('serversSuspended').textContent = suspended;
-        }
-
-        async function suspendServer(id) {
-            if (!confirm('¿Suspendes este servidor?')) return;
-            await actionServer(id, 'suspend');
-        }
-        async function unsuspendServer(id) {
-            if (!confirm('¿Reanudas este servidor?')) return;
-            await actionServer(id, 'unsuspend');
-        }
-        async function deleteServer(id) {
-            if (!confirm('⚠️ ¿Eliminas este servidor? No se puede deshacer.')) return;
-            await actionServer(id, 'delete');
-        }
-
-        async function actionServer(id, action) {
-            const token = localStorage.getItem('waevohosting_token');
-            try {
-                const method = action === 'delete' ? 'DELETE' : 'POST';
-                const url = `/api/servers/${id}?action=${action}`;
-                const response = await fetch(url, { method, headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await response.json();
-                if (data.success) {
-                    await fetchServers();
-                } else {
-                    alert('❌ Error: ' + (data.error || 'Acción fallida'));
-                }
-            } catch (error) {
-                alert('❌ Error de conexión');
-                console.error(error);
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem('waevohosting_token');
-            localStorage.removeItem('waevohosting_user');
+        if (!token) {
             window.location.href = '/login.html';
         }
 
-        // Cargar datos al iniciar
-        document.addEventListener('DOMContentLoaded', () => {
-            const token = localStorage.getItem('waevohosting_token');
-            if (!token) { window.location.href = '/login.html'; return; }
-            const user = JSON.parse(localStorage.getItem('waevohosting_user') || '{}');
-            if (user.email) document.getElementById('userEmail').textContent = user.email;
-            fetchServers();
+        // Mostrar email del usuario
+        document.getElementById('userEmail').textContent = userData.email || 'Usuario';
+
+        // ============================================================
+        // 2. Cargar servidores desde la API
+        // ============================================================
+        const container = document.getElementById('serversContainer');
+
+        async function loadServers() {
+            try {
+                const response = await fetch('/api/servers', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.status === 401) {
+                    // Token expirado o inválido
+                    localStorage.removeItem('waevohosting_token');
+                    localStorage.removeItem('waevohosting_user');
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error al obtener servidores');
+                }
+
+                const servers = data.data || [];
+
+                if (servers.length === 0) {
+                    container.innerHTML = `
+                        <div class="card">
+                            <div class="empty-msg">
+                                🚀 No tienes servidores activos.
+                                <br><br>
+                                <a href="https://panel.waevohosting.es" style="color:#7c6cf0;">Crear un servidor</a>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Generar tarjetas de servidores
+                let html = '<div class="card"><h2>🖥️ Tus servidores</h2><div class="servers-grid">';
+                servers.forEach(server => {
+                    const statusClass = getStatusClass(server.status);
+                    const statusLabel = server.status || 'unknown';
+                    html += `
+                        <div class="server-card">
+                            <div class="server-name">${server.name || server.identifier || 'Sin nombre'}</div>
+                            <div class="server-status ${statusClass}">${statusLabel}</div>
+                            <div style="font-size:0.8rem;color:#475569;margin-top:0.3rem;">
+                                ID: ${server.id} · ${server.allocations?.[0]?.alias || server.allocations?.[0]?.ip || 'N/A'}
+                            </div>
+                            <div class="server-actions">
+                                <button onclick="actionServer(${server.id}, 'suspend')">⏸️ Suspend</button>
+                                <button onclick="actionServer(${server.id}, 'unsuspend')">▶️ Reanudar</button>
+                                <button onclick="actionServer(${server.id}, 'reinstall')">🔄 Reinstalar</button>
+                                <button onclick="actionServer(${server.id}, 'delete')">🗑️ Eliminar</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div></div>';
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error:', error);
+                container.innerHTML = `
+                    <div class="card">
+                        <div class="error-msg">❌ ${error.message || 'Error al cargar los servidores'}</div>
+                    </div>
+                `;
+            }
+        }
+
+        // ============================================================
+        // 3. Función para acciones sobre servidores
+        // ============================================================
+        window.actionServer = async (serverId, action) => {
+            if (!confirm(`¿Estás seguro de que quieres ${action} el servidor ${serverId}?`)) {
+                return;
+            }
+
+            const btn = event?.target || document.activeElement;
+            btn.disabled = true;
+            btn.textContent = '...';
+
+            try {
+                const response = await fetch(`/api/servers/${serverId}/${action}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert(`✅ Servidor ${serverId}: ${action} exitoso`);
+                    loadServers(); // Recargar lista
+                } else {
+                    alert(`❌ Error: ${data.error || 'Error al realizar la acción'}`);
+                }
+            } catch (error) {
+                alert(`❌ Error de conexión: ${error.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = action;
+            }
+        };
+
+        // ============================================================
+        // 4. Función para cerrar sesión
+        // ============================================================
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('waevohosting_token');
+            localStorage.removeItem('waevohosting_user');
+            window.location.href = '/login.html';
         });
+
+        // ============================================================
+        // 5. Helper para estados
+        // ============================================================
+        function getStatusClass(status) {
+            const s = (status || '').toLowerCase();
+            if (s === 'running' || s === 'active' || s === 'online') return 'status-running';
+            if (s === 'suspended' || s === 'suspending') return 'status-suspended';
+            return 'status-offline';
+        }
+
+        // ============================================================
+        // 6. Iniciar carga
+        // ============================================================
+        loadServers();
     </script>
 </body>
 </html>
