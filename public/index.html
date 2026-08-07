@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaevoHosting · Admin Panel</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">⚡</span>
+        <span class="brand-text">Waevo<span>Hosting</span></span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-page="dashboard">
+          <span class="nav-icon">📊</span> Dashboard
+        </a>
+        <a href="#" class="nav-item" data-page="servers">
+          <span class="nav-icon">🖥️</span> Servidores
+        </a>
+        <a href="#" class="nav-item" data-page="users">
+          <span class="nav-icon">👥</span> Usuarios
+        </a>
+        <a href="#" class="nav-item" data-page="settings">
+          <span class="nav-icon">⚙️</span> Configuración
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="status-indicator"></span>
+        <span class="status-text">Sistema conectado</span>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="topbar">
+        <h1 class="page-title" id="pageTitle">Dashboard</h1>
+        <div class="topbar-actions">
+          <button class="btn-refresh" id="refreshBtn">🔄</button>
+          <span class="user-badge">Admin</span>
+        </div>
+      </header>
+
+      <!-- Dashboard Stats -->
+      <section id="dashboardPage" class="page-content">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">🖥️</div>
+            <div class="stat-info">
+              <span class="stat-number" id="totalServers">0</span>
+              <span class="stat-label">Servidores totales</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🟢</div>
+            <div class="stat-info">
+              <span class="stat-number" id="runningServers">0</span>
+              <span class="stat-label">En ejecución</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🟡</div>
+            <div class="stat-info">
+              <span class="stat-number" id="suspendedServers">0</span>
+              <span class="stat-label">Suspendidos</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🔴</div>
+            <div class="stat-info">
+              <span class="stat-number" id="stoppedServers">0</span>
+              <span class="stat-label">Detenidos</span>
+            </div>
+          </div>
+        </div>
+        <div class="chart-container">
+          <h3>Estado de servidores</h3>
+          <div id="statusChart" class="chart-bars"></div>
+        </div>
+      </section>
+
+      <!-- Servers List -->
+      <section id="serversPage" class="page-content" style="display:none;">
+        <div class="toolbar">
+          <input type="text" id="searchServer" placeholder="🔍 Buscar servidor..." class="search-input">
+          <button class="btn-primary" id="newServerBtn">+ Nuevo servidor</button>
+        </div>
+        <div class="servers-grid" id="serversGrid">
+          <!-- Los servidores se renderizan aquí dinámicamente -->
+        </div>
+      </section>
+
+      <!-- Users Page -->
+      <section id="usersPage" class="page-content" style="display:none;">
+        <div class="users-table-wrapper">
+          <table class="users-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Servidores</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <!-- Los usuarios se renderizan aquí -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Settings Page -->
+      <section id="settingsPage" class="page-content" style="display:none;">
+        <div class="settings-card">
+          <h3>Configuración del panel</h3>
+          <div class="setting-item">
+            <label>URL del panel Pterodactyl</label>
+            <input type="text" id="panelUrl" value="https://panel.waevohosting.es" disabled>
+          </div>
+          <div class="setting-item">
+            <label>Estado de la API</label>
+            <span class="badge badge-success">✅ Conectada</span>
+          </div>
+          <button class="btn-secondary" id="testConnectionBtn">Probar conexión</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal para acciones -->
+  <div class="modal" id="actionModal">
+    <div class="modal-content">
+      <h3 id="modalTitle">Confirmar acción</h3>
+      <p id="modalMessage">¿Estás seguro de que deseas realizar esta acción?</p>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="modalCancel">Cancelar</button>
+        <button class="btn-primary" id="modalConfirm">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
