@@ -1,26 +1,16 @@
 // ============================================================
-// API DE AUTENTICACIÓN - WaevoHosting
+// api/auth.js - Autenticación con Pterodactyl + JWT
 // ============================================================
-const jwt = require('jsonwebtoken');
 const axios = require('axios');
+const jwt = require('jsonwebtoken');
 
 // Configuración desde variables de entorno
 const PTERODACTYL_PANEL_URL = process.env.PTERODACTYL_PANEL_URL;
 const PTERODACTYL_API_KEY = process.env.PTERODACTYL_API_KEY;
-const JWT_SECRET = process.env.JWT_SECRET || 'waevohosting_secret_key_change_me';
-
-// Cliente HTTP para Pterodactyl
-const pterodactylClient = axios.create({
-    baseURL: `${PTERODACTYL_PANEL_URL}/api/application`,
-    headers: {
-        'Authorization': `Bearer ${PTERODACTYL_API_KEY}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    },
-});
+const JWT_SECRET = process.env.JWT_SECRET;
 
 // ============================================================
-// ENDPOINT: LOGIN
+// ENDPOINT: /api/auth/login
 // ============================================================
 module.exports = async (req, res) => {
     // Solo permitir POST
@@ -30,66 +20,83 @@ module.exports = async (req, res) => {
 
     const { email, password } = req.body;
 
-    // Validar campos
+    // Validar que se recibieron credenciales
     if (!email || !password) {
-        return res.status(400).json({
-            success: false,
-            error: 'Email y contraseña son obligatorios'
-        });
+        return res.status(400).json({ success: false, error: 'Faltan email o contraseña' });
     }
 
     try {
-        // PASO 1: Verificar credenciales contra Pterodactyl
-        // Usamos la API de usuarios para buscar por email
-        const usersResponse = await pterodactylClient.get('/users', {
-            params: { filter: { email: email } }
-        });
+        // 1. Obtener lista de usuarios de Pterodactyl
+        const response = await axios.get(
+            `${PTERODACTYL_PANEL_URL}/api/application/users`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${PTERODACTYL_API_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                timeout: 10000 // 10 segundos
+            }
+        );
 
-        const user = usersResponse.data.data.find(u => u.attributes.email === email);
+        // 2. Buscar el usuario por email
+        const users = response.data.data || [];
+        const user = users.find(u => u.attributes.email === email);
 
         if (!user) {
-            return res.status(401).json({
-                success: false,
-                error: 'Credenciales incorrectas'
-            });
+            return res.status(401).json({ success: false, error: 'Usuario no encontrado' });
         }
 
-        // PASO 2: Intentar autenticar con la contraseña
-        // Nota: Pterodactyl no tiene un endpoint público de login.
-        // Generamos un token de cliente (ptlc) para el usuario.
-        // Para simplificar, generamos un JWT propio si el usuario existe en Pterodactyl.
+        // 3. Verificar contraseña (usando la API de Pterodactyl)
+        // NOTA: Pterodactyl no tiene un endpoint público para verificar contraseñas.
+        // Esta es una simulación: en producción, deberías usar un endpoint de autenticación real.
+        // Para este ejemplo, asumimos que si el usuario existe, la contraseña es correcta.
+        // En un caso real, necesitarías usar el endpoint de login de Pterodactyl o un sistema de autenticación externo.
+        // Por ahora, aceptamos cualquier contraseña si el usuario existe.
+        // Esto debe mejorarse en producción.
 
-        // PASO 3: Generar JWT
+        // 4. Generar JWT
         const token = jwt.sign(
             {
-                id: user.attributes.id,
+                userId: user.attributes.id,
                 email: user.attributes.email,
                 username: user.attributes.username,
-                role: user.attributes.role || 'user'
+                isAdmin: user.attributes.root_admin || false
             },
             JWT_SECRET,
             { expiresIn: '24h' }
         );
 
-        // PASO 4: Devolver datos del usuario + token
-        res.status(200).json({
+        // 5. Respuesta exitosa
+        return res.status(200).json({
             success: true,
-            token: token,
+            token,
             user: {
                 id: user.attributes.id,
                 email: user.attributes.email,
                 username: user.attributes.username,
-                role: user.attributes.role || 'user',
-                created_at: user.attributes.created_at
+                isAdmin: user.attributes.root_admin || false
             }
         });
 
     } catch (error) {
         console.error('Error en login:', error.response?.data || error.message);
-        res.status(500).json({
+        
+        // Manejar errores específicos
+        if (error.code === 'ECONNABORTED') {
+            return res.status(504).json({ success: false, error: 'Tiempo de espera agotado con el panel de Pterodactyl' });
+        }
+        if (error.response?.status === 401) {
+            return res.status(401).json({ success: false, error: 'API Key inválida' });
+        }
+        if (error.response?.status === 404) {
+            return res.status(404).json({ success: false, error: 'Panel de Pterodactyl no encontrado' });
+        }
+
+        return res.status(500).json({
             success: false,
-            error: 'Error al autenticar con el panel',
-            details: error.response?.data?.errors || error.message
+            error: 'Error interno del servidor',
+            details: error.message
         });
     }
 };
