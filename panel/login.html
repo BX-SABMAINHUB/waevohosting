@@ -88,6 +88,22 @@
             border: 1px solid rgba(239, 68, 68, 0.2);
         }
         .error-msg.show { display: block; }
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        .loading-spinner.show { display: block; }
+        .spinner {
+            border: 3px solid rgba(124, 108, 240, 0.1);
+            border-top: 3px solid #7c6cf0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -98,6 +114,7 @@
                 <p>Panel de administración</p>
             </div>
             <div id="errorMsg" class="error-msg">❌ Credenciales incorrectas. Inténtalo de nuevo.</div>
+            <div class="loading-spinner" id="loadingSpinner"><div class="spinner"></div></div>
             <form id="loginForm">
                 <div class="form-group">
                     <label for="email">Correo electrónico</label>
@@ -107,10 +124,10 @@
                     <label for="password">Contraseña</label>
                     <input type="password" id="password" placeholder="••••••••" required>
                 </div>
-                <button type="submit" class="btn-login">Iniciar sesión</button>
+                <button type="submit" class="btn-login" id="loginBtn">Iniciar sesión</button>
             </form>
             <div class="footer">
-                <p>¿No tienes cuenta? <a href="#" onclick="alert('Contacta con el administrador')">Solicita acceso</a></p>
+                <p>¿No tienes cuenta? <a href="#" onclick="alert('Contacta con el administrador de WaevoHosting')">Solicita acceso</a></p>
             </div>
         </div>
     </div>
@@ -121,13 +138,23 @@
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value.trim();
             const errorMsg = document.getElementById('errorMsg');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const loginBtn = document.getElementById('loginBtn');
             
+            // Resetear mensajes
+            errorMsg.classList.remove('show');
+            loadingSpinner.classList.remove('show');
+
             if (!email || !password) {
                 errorMsg.textContent = '❌ Por favor, rellena todos los campos.';
                 errorMsg.classList.add('show');
                 return;
             }
-            errorMsg.classList.remove('show');
+
+            // Mostrar carga
+            loadingSpinner.classList.add('show');
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Verificando...';
 
             try {
                 const response = await fetch('/api/auth/login', {
@@ -139,7 +166,8 @@
 
                 if (data.success) {
                     localStorage.setItem('waevohosting_token', data.token);
-                    window.location.href = '/panel/dashboard.html';
+                    localStorage.setItem('waevohosting_user', JSON.stringify(data.user));
+                    window.location.href = '/dashboard.html';
                 } else {
                     errorMsg.textContent = data.error || '❌ Credenciales incorrectas.';
                     errorMsg.classList.add('show');
@@ -148,6 +176,10 @@
                 errorMsg.textContent = '❌ Error de conexión con el servidor.';
                 errorMsg.classList.add('show');
                 console.error('Error:', error);
+            } finally {
+                loadingSpinner.classList.remove('show');
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Iniciar sesión';
             }
         });
     </script>
