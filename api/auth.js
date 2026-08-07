@@ -1,7 +1,6 @@
-// panel/api/auth.js
-// Login para WaevoHosting Panel - Valida contra Pterodactyl via ngrok
-import jwt from 'jsonwebtoken';
-import axios from 'axios';
+// api/auth.js - Login que valida contra Pterodactyl (con soporte ngrok)
+const jwt = require('jsonwebtoken');
+const axios = require('axios');
 
 // ============================================================
 // CONFIGURACIÓN (variables de entorno en Vercel)
@@ -11,9 +10,9 @@ const PTERO_API_KEY = process.env.PTERODACTYL_API_KEY;
 const JWT_SECRET = process.env.JWT_SECRET;
 
 // ============================================================
-// HANDLER PRINCIPAL
+// FUNCIÓN PRINCIPAL (Serverless Function)
 // ============================================================
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
     // Configurar CORS para el panel
     res.setHeader('Access-Control-Allow-Origin', 'https://panel.waevohosting.es');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -37,21 +36,19 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Debes proporcionar email y contraseña' });
     }
 
-    // Log para depuración (se verá en los logs de Vercel)
-    console.log(`🔐 Intentando login para: ${email}`);
-
     try {
         // ============================================================
         // 1. AUTENTICAR CONTRA PTERODACTYL (endpoint /auth/login)
         // ============================================================
+        console.log(`🔐 Intentando login para: ${email}`);
+
         // Cabeceras necesarias para evitar la advertencia de ngrok
         const headers = {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'ngrok-skip-browser-warning': 'true', // <--- ¡CLAVE!
+            'ngrok-skip-browser-warning': 'true', // <--- ¡CLAVE! Evita la página de advertencia
         };
 
-        // Intentar login contra Pterodactyl
         const loginResponse = await axios.post(`${PTERO_URL}/auth/login`, {
             email: email,
             password: password
@@ -64,7 +61,7 @@ export default async function handler(req, res) {
             validateStatus: (status) => status < 400
         });
 
-        // Si llegamos aquí, el login fue exitoso (Pterodactyl devuelve 200 o 302)
+        // Si llegamos aquí, el login fue exitoso
         console.log(`✅ Login exitoso para: ${email}`);
 
         // Extraer cookies de sesión (si las hay)
@@ -78,6 +75,7 @@ export default async function handler(req, res) {
         // ============================================================
         // 2. OBTENER DATOS DEL USUARIO DESDE APPLICATION API
         // ============================================================
+        // Cabeceras para la API de Pterodactyl (también con ngrok-skip-browser-warning)
         const apiHeaders = {
             'Authorization': `Bearer ${PTERO_API_KEY}`,
             'Accept': 'application/json',
@@ -166,4 +164,4 @@ export default async function handler(req, res) {
             details: error.message
         });
     }
-}
+};
