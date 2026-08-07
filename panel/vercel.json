@@ -1,13 +1,13 @@
 {
   "version": 2,
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/login.html"
+      "source": "/(.*)",
+      "destination": "/login.html"
     }
   ],
   "headers": [
@@ -23,7 +23,5 @@
         { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" }
       ]
     }
-  ],
-  "cleanUrls": true,
-  "trailingSlash": false
+  ]
 }
