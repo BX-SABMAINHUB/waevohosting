@@ -5,61 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WaevoHosting - Panel</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0b0e14;
-            height: 100vh;
-            overflow: hidden;
-        }
-        iframe {
-            width: 100%;
-            height: 100vh;
-            border: none;
-            display: block;
-            background: #0b0e14;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0b0e14; height: 100vh; overflow: hidden; }
+        iframe { width: 100%; height: 100vh; border: none; }
         .header {
-            background: rgba(11, 14, 20, 0.92);
+            background: rgba(11,14,20,0.92);
             backdrop-filter: blur(12px);
             padding: 0.8rem 2rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 10;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 10;
         }
-        .logo {
-            font-size: 1.2rem;
-            font-weight: 800;
-            color: #e0e5ee;
-        }
-        .logo span {
-            background: linear-gradient(135deg, #a78bfa, #60a5fa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .header a {
-            color: #94a3b8;
-            text-decoration: none;
-            font-size: 0.85rem;
-            transition: color 0.2s;
-        }
-        .header a:hover {
-            color: #e0e5ee;
-        }
-        iframe {
-            margin-top: 52px;
-            height: calc(100vh - 52px);
-        }
+        .logo { font-size: 1.2rem; font-weight: 800; color: #e0e5ee; }
+        .logo span { background: linear-gradient(135deg, #a78bfa, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header a { color: #94a3b8; text-decoration: none; font-size: 0.85rem; }
+        .header a:hover { color: #e0e5ee; }
+        iframe { margin-top: 52px; height: calc(100vh - 52px); }
     </style>
 </head>
 <body>
@@ -67,6 +32,6 @@
         <div class="logo"><span>Waevo</span>Hosting</div>
         <a href="https://waevohosting.es">← Volver a la web</a>
     </div>
-    <iframe src="https://unending-jazz-bush.ngrok-free.dev" sandbox="allow-forms allow-same-origin allow-scripts allow-popups allow-modals"></iframe>
+    <iframe src="https://unending-jazz-bush.ngrok-free.dev" allow="accelerometer; camera; encrypted-media; geolocation; gyroscope; microphone; autoplay; clipboard-write" sandbox="allow-forms allow-same-origin allow-scripts allow-popups allow-modals allow-downloads"></iframe>
 </body>
 </html>
