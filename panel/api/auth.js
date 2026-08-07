@@ -1,175 +1,110 @@
-// ============================================================
-// panel/api/auth.js - Endpoint de autenticación
-// ============================================================
-// Descripción: Valida credenciales contra Pterodactyl y genera un JWT
-// ============================================================
-
-const axios = require('axios');
+// api/auth.js - Endpoint de login para el panel de WaevoHosting
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 
-// ============================================================
-// CONFIGURACIÓN (desde variables de entorno)
-// ============================================================
-const PTERODACTYL_PANEL_URL = process.env.PTERODACTYL_PANEL_URL || 'https://panel.waevohosting.es';
-const PTERODACTYL_API_KEY = process.env.PTERODACTYL_API_KEY;
-const JWT_SECRET = process.env.JWT_SECRET || 'tu_clave_secreta_super_segura_cambia_esto';
+// Configuración desde variables de entorno (Vercel)
+const PTERO_URL = process.env.PTERODACTYL_PANEL_URL;
+const PTERO_API_KEY = process.env.PTERODACTYL_API_KEY;
+const JWT_SECRET = process.env.JWT_SECRET;
 
-// ============================================================
-// FUNCIÓN PRINCIPAL (Vercel Serverless Function)
-// ============================================================
 module.exports = async (req, res) => {
-    // 1. Solo permitimos peticiones POST
-    if (req.method !== 'POST') {
-        return res.status(405).json({
-            success: false,
-            error: 'Método no permitido. Usa POST.'
-        });
+    // Configurar CORS para el panel
+    res.setHeader('Access-Control-Allow-Origin', 'https://panel.waevohosting.es');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    // Responder a preflight (OPTIONS)
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
     }
 
-    // 2. Extraer credenciales del body
+    // Solo permitir POST
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Método no permitido' });
+    }
+
     const { email, password } = req.body;
 
-    // 3. Validar que se enviaron email y contraseña
     if (!email || !password) {
-        return res.status(400).json({
-            success: false,
-            error: 'Faltan credenciales: email y password son obligatorios.'
-        });
-    }
-
-    // 4. Validar formato básico del email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        return res.status(400).json({
-            success: false,
-            error: 'Formato de email inválido.'
-        });
-    }
-
-    // 5. Validar que la contraseña no esté vacía
-    if (password.length < 4) {
-        return res.status(400).json({
-            success: false,
-            error: 'La contraseña debe tener al menos 4 caracteres.'
-        });
+        return res.status(400).json({ error: 'Faltan email o contraseña' });
     }
 
     try {
-        // 6. Verificar que la API Key está configurada
-        if (!PTERODACTYL_API_KEY) {
-            console.error('❌ PTERODACTYL_API_KEY no configurada en variables de entorno.');
-            return res.status(500).json({
-                success: false,
-                error: 'Error de configuración del servidor (API Key).'
-            });
-        }
-
-        // 7. Autenticar contra Pterodactyl
-        // NOTA: Pterodactyl no tiene un endpoint de login directo,
-        // así que usamos la API de aplicación para buscar al usuario por email.
-        console.log(`🔄 Intentando autenticar usuario: ${email}`);
-
-        // 7.1. Buscar usuario por email en Pterodactyl
-        const searchResponse = await axios.get(
-            `${PTERODACTYL_PANEL_URL}/api/application/users`,
-            {
-                params: { filter: { email: email } },
-                headers: {
-                    'Authorization': `Bearer ${PTERODACTYL_API_KEY}`,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                timeout: 10000 // 10 segundos de timeout
-            }
-        );
-
-        // 7.2. Verificar si el usuario existe
-        const users = searchResponse.data.data;
-        if (!users || users.length === 0) {
-            console.log(`❌ Usuario no encontrado: ${email}`);
-            return res.status(401).json({
-                success: false,
-                error: 'Credenciales incorrectas. Usuario no encontrado.'
-            });
-        }
-
-        const user = users[0];
-
-        // 7.3. NOTA: No podemos verificar la contraseña directamente desde la API de aplicación.
-        // En un entorno real, deberías tener un endpoint de autenticación o usar un hash.
-        // Para esta demo, asumimos que si el usuario existe, la autenticación es válida.
-        // En producción, deberías implementar una verificación de contraseña adecuada.
-        // (Por ejemplo, usando el endpoint de autenticación de Pterodactyl o una base de datos propia).
-
-        // 8. Generar JWT
-        const token = jwt.sign(
-            {
-                userId: user.id,
-                email: user.email,
-                username: user.username,
-                rootAdmin: user.root_admin || false,
-                timestamp: Date.now()
-            },
-            JWT_SECRET,
-            { expiresIn: '24h' } // Token expira en 24 horas
-        );
-
-        // 9. Respuesta exitosa
-        console.log(`✅ Login exitoso: ${email} (ID: ${user.id})`);
-        res.status(200).json({
-            success: true,
-            message: 'Login exitoso',
-            token: token,
-            user: {
-                id: user.id,
-                email: user.email,
-                username: user.username,
-                rootAdmin: user.root_admin || false,
-                created_at: user.created_at
+        // ============================================================
+        // 1. Buscar el usuario en Pterodactyl por email
+        // ============================================================
+        const usersResponse = await axios.get(`${PTERO_URL}/api/application/users`, {
+            headers: {
+                'Authorization': `Bearer ${PTERO_API_KEY}`,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
             }
         });
 
+        // Buscar el usuario en la lista
+        const user = usersResponse.data.data.find(u => u.email === email);
+
+        if (!user) {
+            return res.status(401).json({ error: 'Usuario no encontrado' });
+        }
+
+        // ============================================================
+        // 2. Autenticar al usuario contra el panel de Pterodactyl
+        // ============================================================
+        try {
+            const authResponse = await axios.post(`${PTERO_URL}/api/authenticate`, {
+                email: email,
+                password: password
+            }, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            // Si la autenticación es exitosa, obtenemos el token de cliente
+            const clientToken = authResponse.data.token;
+
+            // ============================================================
+            // 3. Generar un JWT para tu panel (expira en 24h)
+            // ============================================================
+            const panelToken = jwt.sign(
+                {
+                    id: user.id,
+                    email: user.email,
+                    username: user.username,
+                    clientToken: clientToken // Para futuras peticiones a la Client API
+                },
+                JWT_SECRET,
+                { expiresIn: '24h' }
+            );
+
+            // ============================================================
+            // 4. Responder con el token y datos del usuario
+            // ============================================================
+            res.status(200).json({
+                success: true,
+                token: panelToken,
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    username: user.username,
+                    first_name: user.first_name || '',
+                    last_name: user.last_name || ''
+                }
+            });
+
+        } catch (authError) {
+            // Si la autenticación falla (contraseña incorrecta)
+            console.error('Error de autenticación:', authError.response?.data || authError.message);
+            return res.status(401).json({ error: 'Contraseña incorrecta' });
+        }
+
     } catch (error) {
-        // Manejo de errores detallado
-        console.error('❌ Error en login:', error);
-
-        // Error específico de conexión
-        if (error.code === 'ECONNREFUSED' || error.code === 'ECONNRESET') {
-            return res.status(503).json({
-                success: false,
-                error: 'El panel de Pterodactyl no está accesible. Intenta más tarde.'
-            });
-        }
-
-        // Error de timeout
-        if (error.code === 'ETIMEDOUT') {
-            return res.status(504).json({
-                success: false,
-                error: 'El panel de Pterodactyl no responde. Intenta más tarde.'
-            });
-        }
-
-        // Error de autenticación de la API Key
-        if (error.response && error.response.status === 401) {
-            return res.status(500).json({
-                success: false,
-                error: 'La API Key de Pterodactyl no es válida o ha expirado.'
-            });
-        }
-
-        // Error genérico de Pterodactyl
-        if (error.response && error.response.data) {
-            return res.status(error.response.status || 500).json({
-                success: false,
-                error: error.response.data.errors || 'Error en el panel de Pterodactyl.'
-            });
-        }
-
-        // Error desconocido
+        console.error('Error en login:', error.response?.data || error.message);
         res.status(500).json({
-            success: false,
-            error: 'Error interno del servidor.',
-            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+            error: 'Error al conectar con el panel de Pterodactyl',
+            details: error.message
         });
     }
 };
