@@ -1,39 +1,54 @@
 {
   "version": 2,
-  "headers": [
+  "rewrites": [
     {
       "source": "/(.*)",
-      "headers": [
+      "destination": "/public/index.html",
+      "has": [
         {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
+          "type": "host",
+          "value": "www.waevohosting.es"
+        }
+      ]
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/public/dashboard.html",
+      "has": [
         {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
+          "type": "host",
+          "value": "panel.waevohosting.es"
+        }
+      ]
+    },
+    {
+      "source": "/login",
+      "destination": "/public/login.html",
+      "has": [
         {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'"
-        },
+          "type": "host",
+          "value": "panel.waevohosting.es"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/public/login.html",
+      "has": [
         {
-          "key": "Strict-Transport-Security",
-          "value": "max-age=31536000; includeSubDomains; preload"
+          "type": "host",
+          "value": "panel.waevohosting.es"
         }
       ]
     }
   ],
-  "redirects": [
-    {
-      "source": "/panel",
-      "destination": "https://panel.waevohosting.es",
-      "permanent": true
-    }
-  ],
-  "rewrites": [
+  "headers": [
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
     }
   ],
   "cleanUrls": true,
