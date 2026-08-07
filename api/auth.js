@@ -1,6 +1,7 @@
-// api/auth.js - Login que valida contra Pterodactyl y devuelve JWT
-const jwt = require('jsonwebtoken');
-const axios = require('axios');
+// panel/api/auth.js
+// Login para WaevoHosting Panel - Valida contra Pterodactyl via ngrok
+import jwt from 'jsonwebtoken';
+import axios from 'axios';
 
 // ============================================================
 // CONFIGURACIÓN (variables de entorno en Vercel)
@@ -10,9 +11,9 @@ const PTERO_API_KEY = process.env.PTERODACTYL_API_KEY;
 const JWT_SECRET = process.env.JWT_SECRET;
 
 // ============================================================
-// FUNCIÓN PRINCIPAL (Serverless Function)
+// HANDLER PRINCIPAL
 // ============================================================
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
     // Configurar CORS para el panel
     res.setHeader('Access-Control-Allow-Origin', 'https://panel.waevohosting.es');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -36,20 +37,26 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Debes proporcionar email y contraseña' });
     }
 
+    // Log para depuración (se verá en los logs de Vercel)
+    console.log(`🔐 Intentando login para: ${email}`);
+
     try {
         // ============================================================
         // 1. AUTENTICAR CONTRA PTERODACTYL (endpoint /auth/login)
         // ============================================================
-        console.log(`🔐 Intentando login para: ${email}`);
+        // Cabeceras necesarias para evitar la advertencia de ngrok
+        const headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true', // <--- ¡CLAVE!
+        };
 
+        // Intentar login contra Pterodactyl
         const loginResponse = await axios.post(`${PTERO_URL}/auth/login`, {
             email: email,
             password: password
         }, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
+            headers: headers,
             // Permitir cookies y redirecciones
             withCredentials: true,
             // No seguir redirecciones (para capturar la cookie de sesión)
@@ -71,15 +78,18 @@ module.exports = async (req, res) => {
         // ============================================================
         // 2. OBTENER DATOS DEL USUARIO DESDE APPLICATION API
         // ============================================================
+        const apiHeaders = {
+            'Authorization': `Bearer ${PTERO_API_KEY}`,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true', // <--- ¡CLAVE! También aquí
+        };
+
         const usersResponse = await axios.get(`${PTERO_URL}/api/application/users`, {
-            headers: {
-                'Authorization': `Bearer ${PTERO_API_KEY}`,
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            }
+            headers: apiHeaders
         });
 
-        // Buscar el usuario por email (coincidencia exacta)
+        // Buscar el usuario por email (coincidencia exacta, sin distinción de mayúsculas)
         const user = usersResponse.data.data.find(u => u.email.toLowerCase() === email.toLowerCase());
 
         if (!user) {
@@ -123,10 +133,8 @@ module.exports = async (req, res) => {
                 avatar: user.avatar || null,
                 language: user.language || 'en',
                 root_admin: user.root_admin || false,
-                // Si el usuario tiene 2FA activado, lo indicamos
                 two_factor: user.two_factor || false
             },
-            // Opcional: devolver la cookie de sesión para usarla en el frontend
             session: pterodactylSession
         });
 
@@ -158,4 +166,4 @@ module.exports = async (req, res) => {
             details: error.message
         });
     }
-};
+}
