@@ -1,6 +1,16 @@
 {
   "version": 2,
+  "functions": {
+    "api/*.js": {
+      "maxDuration": 10
+    }
+  },
   "routes": [
+    {
+      "src": "/api/auth/login",
+      "dest": "/api/auth.js",
+      "methods": ["POST"]
+    },
     {
       "src": "/api/(.*)",
       "dest": "/api/$1"
@@ -23,7 +33,5 @@
         { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" }
       ]
     }
-  ],
-  "cleanUrls": true,
-  "trailingSlash": false
+  ]
 }
