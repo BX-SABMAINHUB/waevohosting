@@ -12,6 +12,16 @@
       ]
     },
     {
+      "source": "/(.*)",
+      "destination": "/public/login.html",
+      "has": [
+        {
+          "type": "host",
+          "value": "panel.waevohosting.es"
+        }
+      ]
+    },
+    {
       "source": "/dashboard",
       "destination": "/public/dashboard.html",
       "has": [
@@ -22,24 +32,8 @@
       ]
     },
     {
-      "source": "/login",
-      "destination": "/public/login.html",
-      "has": [
-        {
-          "type": "host",
-          "value": "panel.waevohosting.es"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/public/login.html",
-      "has": [
-        {
-          "type": "host",
-          "value": "panel.waevohosting.es"
-        }
-      ]
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     }
   ],
   "headers": [
@@ -47,7 +41,8 @@
       "source": "/(.*)",
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Frame-Options", "value": "DENY" }
       ]
     }
   ],
