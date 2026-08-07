@@ -3,7 +3,17 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/public/index.html",
+      "destination": "/index.html",
+      "has": [
+        {
+          "type": "host",
+          "value": "waevohosting.es"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html",
       "has": [
         {
           "type": "host",
