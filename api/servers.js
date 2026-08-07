@@ -1,15 +1,18 @@
-const express = require('express');
+// ============================================================
+// API DE SERVIDORES - WaevoHosting
+// ============================================================
+// Endpoints protegidos por JWT
+// ============================================================
+
+const jwt = require('jsonwebtoken');
 const axios = require('axios');
-const router = express.Router();
 
-// ============================================================
-// CONFIGURACIÓN DE PTERODACTYL
-// ============================================================
-const PTERODACTYL_PANEL_URL = 'https://panel.waevohosting.es'; // Cambia por tu URL
-const PTERODACTYL_API_KEY = 'ptla_yFNJgW23cSZ99e1vDGujWuEfssG9AZt4Zg975Anu7X6'; // ¡PON AQUÍ TU CLAVE!
-// ============================================================
+// Configuración desde variables de entorno
+const PTERODACTYL_PANEL_URL = process.env.PTERODACTYL_PANEL_URL;
+const PTERODACTYL_API_KEY = process.env.PTERODACTYL_API_KEY;
+const JWT_SECRET = process.env.JWT_SECRET || 'waevohosting_secret_key_change_me';
 
-// Cliente HTTP con la configuración base
+// Cliente HTTP para Pterodactyl
 const pterodactylClient = axios.create({
     baseURL: `${PTERODACTYL_PANEL_URL}/api/application`,
     headers: {
@@ -20,260 +23,302 @@ const pterodactylClient = axios.create({
 });
 
 // ============================================================
-// MIDDLEWARE DE VALIDACIÓN
+// MIDDLEWARE: Verificación JWT
 // ============================================================
-const validateServerId = (req, res, next) => {
-    const { serverId } = req.params;
-    if (!serverId || isNaN(serverId)) {
-        return res.status(400).json({
-            success: false,
-            error: 'ID de servidor inválido o no proporcionado'
-        });
+const verifyToken = (req) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        throw new Error('Token no proporcionado o inválido');
     }
-    next();
+
+    const token = authHeader.split(' ')[1];
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        return decoded;
+    } catch (error) {
+        throw new Error('Token inválido o expirado');
+    }
 };
 
 // ============================================================
-// ENDPOINTS
+// MANEJADOR PRINCIPAL (Vercel Serverless Function)
 // ============================================================
+module.exports = async (req, res) => {
+    // Configurar CORS para el frontend
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-// ------------------------------------------------------------
-// 1. LISTAR TODOS LOS SERVIDORES
-// ------------------------------------------------------------
-router.get('/servers', async (req, res) => {
-    try {
-        const response = await pterodactylClient.get('/servers');
-        res.json({
-            success: true,
-            data: response.data.data,
-            meta: response.data.meta
-        });
-    } catch (error) {
-        console.error('Error al listar servidores:', error.response?.data || error.message);
-        res.status(500).json({
-            success: false,
-            error: error.response?.data?.errors || 'Error al obtener la lista de servidores'
-        });
-    }
-});
-
-// ------------------------------------------------------------
-// 2. OBTENER DETALLES DE UN SERVIDOR
-// ------------------------------------------------------------
-router.get('/servers/:serverId', validateServerId, async (req, res) => {
-    const { serverId } = req.params;
-    try {
-        const response = await pterodactylClient.get(`/servers/${serverId}`);
-        res.json({
-            success: true,
-            data: response.data
-        });
-    } catch (error) {
-        console.error(`Error al obtener servidor ${serverId}:`, error.response?.data || error.message);
-        res.status(500).json({
-            success: false,
-            error: error.response?.data?.errors || 'Error al obtener detalles del servidor'
-        });
-    }
-});
-
-// ------------------------------------------------------------
-// 3. CREAR UN NUEVO SERVIDOR (con validaciones)
-// ------------------------------------------------------------
-router.post('/servers', async (req, res) => {
-    const {
-        name,
-        description,
-        userId,
-        eggId,
-        nodeId,
-        dockerImage,
-        startup,
-        environment,
-        limits,
-        featureLimits
-    } = req.body;
-
-    // Validación básica de campos obligatorios
-    if (!name || !userId || !eggId || !nodeId) {
-        return res.status(400).json({
-            success: false,
-            error: 'Faltan campos obligatorios: name, userId, eggId, nodeId'
-        });
+    // Manejar preflight (OPTIONS)
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
     }
 
     try {
-        const response = await pterodactylClient.post('/servers', {
-            name,
-            description,
-            user: userId,
-            egg: eggId,
-            node: nodeId,
-            docker_image: dockerImage || 'ghcr.io/pterodactyl/yolks:latest',
-            startup: startup || '',
-            environment: environment || {},
-            limits: limits || {
-                memory: 1024,
-                swap: 512,
-                disk: 10240,
-                io: 500,
-                cpu: 100
-            },
-            feature_limits: featureLimits || {
-                databases: 1,
-                allocations: 1,
-                backups: 1
+        // Verificar autenticación (excepto para endpoints públicos si los hubiera)
+        const user = verifyToken(req);
+        console.log(`🔐 Usuario autenticado: ${user.email} (ID: ${user.id})`);
+
+        // ============================================================
+        // RUTAS
+        // ============================================================
+
+        // ------------------------------------------------------------
+        // GET /api/servers - Listar todos los servidores
+        // ------------------------------------------------------------
+        if (req.method === 'GET' && req.url === '/servers') {
+            try {
+                const response = await pterodactylClient.get('/servers');
+                return res.status(200).json({
+                    success: true,
+                    data: response.data.data,
+                    meta: response.data.meta
+                });
+            } catch (error) {
+                console.error('❌ Error al listar servidores:', error.response?.data || error.message);
+                return res.status(500).json({
+                    success: false,
+                    error: 'Error al obtener la lista de servidores',
+                    details: error.response?.data?.errors || error.message
+                });
             }
+        }
+
+        // ------------------------------------------------------------
+        // GET /api/servers/:id - Obtener un servidor específico
+        // ------------------------------------------------------------
+        const getServerMatch = req.url.match(/^\/servers\/([^\/]+)$/);
+        if (req.method === 'GET' && getServerMatch) {
+            const serverId = getServerMatch[1];
+            try {
+                const response = await pterodactylClient.get(`/servers/${serverId}`);
+                return res.status(200).json({
+                    success: true,
+                    data: response.data
+                });
+            } catch (error) {
+                console.error(`❌ Error al obtener servidor ${serverId}:`, error.response?.data || error.message);
+                return res.status(404).json({
+                    success: false,
+                    error: 'Servidor no encontrado',
+                    details: error.response?.data?.errors || error.message
+                });
+            }
+        }
+
+        // ------------------------------------------------------------
+        // POST /api/servers - Crear un nuevo servidor
+        // ------------------------------------------------------------
+        if (req.method === 'POST' && req.url === '/servers') {
+            const {
+                name,
+                description,
+                userId,
+                eggId,
+                nodeId,
+                dockerImage,
+                startup,
+                environment,
+                limits,
+                featureLimits
+            } = req.body;
+
+            // Validar campos obligatorios
+            if (!name || !userId || !eggId || !nodeId) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Faltan campos obligatorios: name, userId, eggId, nodeId'
+                });
+            }
+
+            try {
+                const response = await pterodactylClient.post('/servers', {
+                    name,
+                    description: description || '',
+                    user: userId,
+                    egg: eggId,
+                    node: nodeId,
+                    docker_image: dockerImage || 'ghcr.io/pterodactyl/yolks:latest',
+                    startup: startup || '',
+                    environment: environment || {},
+                    limits: limits || {
+                        memory: 1024,
+                        swap: 512,
+                        disk: 10240,
+                        io: 500,
+                        cpu: 100
+                    },
+                    feature_limits: featureLimits || {
+                        databases: 1,
+                        allocations: 1,
+                        backups: 1
+                    }
+                });
+
+                return res.status(201).json({
+                    success: true,
+                    data: response.data,
+                    message: 'Servidor creado correctamente'
+                });
+            } catch (error) {
+                console.error('❌ Error al crear servidor:', error.response?.data || error.message);
+                return res.status(500).json({
+                    success: false,
+                    error: 'Error al crear el servidor',
+                    details: error.response?.data?.errors || error.message
+                });
+            }
+        }
+
+        // ------------------------------------------------------------
+        // POST /api/servers/:id/suspend - Suspender un servidor
+        // ------------------------------------------------------------
+        const suspendMatch = req.url.match(/^\/servers\/([^\/]+)\/suspend$/);
+        if (req.method === 'POST' && suspendMatch) {
+            const serverId = suspendMatch[1];
+            try {
+                await pterodactylClient.post(`/servers/${serverId}/suspend`);
+                return res.status(200).json({
+                    success: true,
+                    message: `Servidor ${serverId} suspendido correctamente`
+                });
+            } catch (error) {
+                console.error(`❌ Error al suspender servidor ${serverId}:`, error.response?.data || error.message);
+                return res.status(500).json({
+                    success: false,
+                    error: 'Error al suspender el servidor',
+                    details: error.response?.data?.errors || error.message
+                });
+            }
+        }
+
+        // ------------------------------------------------------------
+        // POST /api/servers/:id/unsuspend - Reanudar un servidor
+        // ------------------------------------------------------------
+        const unsuspendMatch = req.url.match(/^\/servers\/([^\/]+)\/unsuspend$/);
+        if (req.method === 'POST' && unsuspendMatch) {
+            const serverId = unsuspendMatch[1];
+            try {
+                await pterodactylClient.post(`/servers/${serverId}/unsuspend`);
+                return res.status(200).json({
+                    success: true,
+                    message: `Servidor ${serverId} reanudado correctamente`
+                });
+            } catch (error) {
+                console.error(`❌ Error al reanudar servidor ${serverId}:`, error.response?.data || error.message);
+                return res.status(500).json({
+                    success: false,
+                    error: 'Error al reanudar el servidor',
+                    details: error.response?.data?.errors || error.message
+                });
+            }
+        }
+
+        // ------------------------------------------------------------
+        // POST /api/servers/:id/reinstall - Reinstalar un servidor
+        // ------------------------------------------------------------
+        const reinstallMatch = req.url.match(/^\/servers\/([^\/]+)\/reinstall$/);
+        if (req.method === 'POST' && reinstallMatch) {
+            const serverId = reinstallMatch[1];
+            try {
+                await pterodactylClient.post(`/servers/${serverId}/reinstall`);
+                return res.status(200).json({
+                    success: true,
+                    message: `Servidor ${serverId} reinstalado correctamente`
+                });
+            } catch (error) {
+                console.error(`❌ Error al reinstalar servidor ${serverId}:`, error.response?.data || error.message);
+                return res.status(500).json({
+                    success: false,
+                    error: 'Error al reinstalar el servidor',
+                    details: error.response?.data?.errors || error.message
+                });
+            }
+        }
+
+        // ------------------------------------------------------------
+        // DELETE /api/servers/:id - Eliminar un servidor
+        // ------------------------------------------------------------
+        const deleteMatch = req.url.match(/^\/servers\/([^\/]+)$/);
+        if (req.method === 'DELETE' && deleteMatch) {
+            const serverId = deleteMatch[1];
+            const { force } = req.query;
+
+            try {
+                await pterodactylClient.delete(`/servers/${serverId}${force ? '?force=true' : ''}`);
+                return res.status(200).json({
+                    success: true,
+                    message: `Servidor ${serverId} eliminado correctamente`
+                });
+            } catch (error) {
+                console.error(`❌ Error al eliminar servidor ${serverId}:`, error.response?.data || error.message);
+                return res.status(500).json({
+                    success: false,
+                    error: 'Error al eliminar el servidor',
+                    details: error.response?.data?.errors || error.message
+                });
+            }
+        }
+
+        // ------------------------------------------------------------
+        // GET /api/servers/:id/status - Obtener estado detallado
+        // ------------------------------------------------------------
+        const statusMatch = req.url.match(/^\/servers\/([^\/]+)\/status$/);
+        if (req.method === 'GET' && statusMatch) {
+            const serverId = statusMatch[1];
+            try {
+                // Obtener detalles del servidor
+                const response = await pterodactylClient.get(`/servers/${serverId}`);
+                const serverData = response.data;
+
+                // Intentar obtener estado en tiempo real (Client API)
+                // Nota: Esto requiere un token de cliente, pero podemos usar el de aplicación para info básica
+                return res.status(200).json({
+                    success: true,
+                    data: {
+                        id: serverData.attributes.id,
+                        name: serverData.attributes.name,
+                        status: serverData.attributes.status || 'unknown',
+                        limits: serverData.attributes.limits,
+                        usage: serverData.attributes.usage || null,
+                        is_suspended: serverData.attributes.is_suspended || false,
+                    }
+                });
+            } catch (error) {
+                console.error(`❌ Error al obtener estado del servidor ${serverId}:`, error.response?.data || error.message);
+                return res.status(500).json({
+                    success: false,
+                    error: 'Error al obtener estado del servidor',
+                    details: error.response?.data?.errors || error.message
+                });
+            }
+        }
+
+        // ------------------------------------------------------------
+        // Ruta no encontrada
+        // ------------------------------------------------------------
+        return res.status(404).json({
+            success: false,
+            error: 'Endpoint no encontrado',
+            path: req.url
         });
 
-        res.status(201).json({
-            success: true,
-            data: response.data,
-            message: 'Servidor creado correctamente'
-        });
     } catch (error) {
-        console.error('Error al crear servidor:', error.response?.data || error.message);
-        res.status(500).json({
+        // Error de autenticación
+        if (error.message === 'Token no proporcionado o inválido' || error.message === 'Token inválido o expirado') {
+            return res.status(401).json({
+                success: false,
+                error: 'No autorizado',
+                message: error.message
+            });
+        }
+
+        // Error general
+        console.error('❌ Error interno del servidor:', error);
+        return res.status(500).json({
             success: false,
-            error: error.response?.data?.errors || 'Error al crear el servidor'
+            error: 'Error interno del servidor',
+            details: error.message
         });
     }
-});
-
-// ------------------------------------------------------------
-// 4. SUSPENDER UN SERVIDOR
-// ------------------------------------------------------------
-router.post('/servers/:serverId/suspend', validateServerId, async (req, res) => {
-    const { serverId } = req.params;
-    try {
-        await pterodactylClient.post(`/servers/${serverId}/suspend`);
-        res.json({
-            success: true,
-            message: `Servidor ${serverId} suspendido correctamente`
-        });
-    } catch (error) {
-        console.error(`Error al suspender servidor ${serverId}:`, error.response?.data || error.message);
-        res.status(500).json({
-            success: false,
-            error: error.response?.data?.errors || 'Error al suspender el servidor'
-        });
-    }
-});
-
-// ------------------------------------------------------------
-// 5. REANUDAR UN SERVIDOR
-// ------------------------------------------------------------
-router.post('/servers/:serverId/unsuspend', validateServerId, async (req, res) => {
-    const { serverId } = req.params;
-    try {
-        await pterodactylClient.post(`/servers/${serverId}/unsuspend`);
-        res.json({
-            success: true,
-            message: `Servidor ${serverId} reanudado correctamente`
-        });
-    } catch (error) {
-        console.error(`Error al reanudar servidor ${serverId}:`, error.response?.data || error.message);
-        res.status(500).json({
-            success: false,
-            error: error.response?.data?.errors || 'Error al reanudar el servidor'
-        });
-    }
-});
-
-// ------------------------------------------------------------
-// 6. REINSTALAR UN SERVIDOR
-// ------------------------------------------------------------
-router.post('/servers/:serverId/reinstall', validateServerId, async (req, res) => {
-    const { serverId } = req.params;
-    try {
-        await pterodactylClient.post(`/servers/${serverId}/reinstall`);
-        res.json({
-            success: true,
-            message: `Servidor ${serverId} reinstalado correctamente`
-        });
-    } catch (error) {
-        console.error(`Error al reinstalar servidor ${serverId}:`, error.response?.data || error.message);
-        res.status(500).json({
-            success: false,
-            error: error.response?.data?.errors || 'Error al reinstalar el servidor'
-        });
-    }
-});
-
-// ------------------------------------------------------------
-// 7. ELIMINAR UN SERVIDOR (con confirmación)
-// ------------------------------------------------------------
-router.delete('/servers/:serverId', validateServerId, async (req, res) => {
-    const { serverId } = req.params;
-    const { force } = req.query; // ?force=true para eliminar forzosamente
-
-    try {
-        await pterodactylClient.delete(`/servers/${serverId}${force ? '?force=true' : ''}`);
-        res.json({
-            success: true,
-            message: `Servidor ${serverId} eliminado correctamente`
-        });
-    } catch (error) {
-        console.error(`Error al eliminar servidor ${serverId}:`, error.response?.data || error.message);
-        res.status(500).json({
-            success: false,
-            error: error.response?.data?.errors || 'Error al eliminar el servidor'
-        });
-    }
-});
-
-// ------------------------------------------------------------
-// 8. LISTAR USUARIOS (para asignar servidores)
-// ------------------------------------------------------------
-router.get('/users', async (req, res) => {
-    try {
-        const response = await pterodactylClient.get('/users');
-        res.json({
-            success: true,
-            data: response.data.data
-        });
-    } catch (error) {
-        console.error('Error al listar usuarios:', error.response?.data || error.message);
-        res.status(500).json({
-            success: false,
-            error: error.response?.data?.errors || 'Error al obtener la lista de usuarios'
-        });
-    }
-});
-
-// ------------------------------------------------------------
-// 9. OBTENER ESTADÍSTICAS DEL NODO
-// ------------------------------------------------------------
-router.get('/nodes/:nodeId', async (req, res) => {
-    const { nodeId } = req.params;
-    try {
-        const response = await pterodactylClient.get(`/nodes/${nodeId}`);
-        res.json({
-            success: true,
-            data: response.data
-        });
-    } catch (error) {
-        console.error(`Error al obtener nodo ${nodeId}:`, error.response?.data || error.message);
-        res.status(500).json({
-            success: false,
-            error: error.response?.data?.errors || 'Error al obtener información del nodo'
-        });
-    }
-});
-
-// ============================================================
-// MANEJO DE ERRORES GENERAL
-// ============================================================
-router.use((err, req, res, next) => {
-    console.error('Error no controlado:', err.stack);
-    res.status(500).json({
-        success: false,
-        error: 'Error interno del servidor',
-        details: err.message
-    });
-});
-
-// ============================================================
-// EXPORTAR EL ROUTER
-// ============================================================
-module.exports = router;
+};
