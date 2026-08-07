@@ -1,0 +1,17 @@
+{
+  "name": "waevohosting-admin",
+  "version": "1.0.0",
+  "description": "Panel de administración personalizado para Pterodactyl",
+  "main": "api/_lib/pterodactyl.js",
+  "scripts": {
+    "dev": "node api/servers.js",
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "vercel": "^33.0.0"
+  }
+}
