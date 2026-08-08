@@ -6,7 +6,6 @@
     <title>WaevoHosting · Iniciar sesión</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
     <style>
-        /* ===== RESET Y BASE ===== */
         * {
             margin: 0;
             padding: 0;
@@ -181,8 +180,7 @@
             <p>Panel de control</p>
         </div>
 
-        <!-- ===== FORMULARIO DE LOGIN (FIREBASE) ===== -->
-        <form id="loginForm">
+        <form id="loginForm" action="javascript:void(0);" method="POST">
             <div class="form-group">
                 <label for="email">Correo electrónico</label>
                 <input type="email" id="email" placeholder="tu@email.com" required autofocus />
@@ -208,30 +206,16 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SCRIPTS: FIREBASE (email + contraseña)                       -->
+    <!-- SCRIPTS: FIREBASE CLÁSICA (CDN, sin módulos)                 -->
     <!-- ============================================================ -->
-    <script type="importmap">
-        {
-            "imports": {
-                "firebase/app": "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js",
-                "firebase/auth": "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js",
-                "firebase/analytics": "https://www.gstatic.com/firebasejs/10.13.1/firebase-analytics.js"
-            }
-        }
-    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
 
-    <script type="module">
-        // ============================================================
-        // 1. IMPORTAR FIREBASE
-        // ============================================================
-        import { initializeApp } from 'firebase/app';
-        import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-        import { getAnalytics } from 'firebase/analytics';
-
-        console.log('✅ Firebase modular cargado');
+    <script>
+        console.log('✅ Script cargado');
 
         // ============================================================
-        // 2. CONFIGURACIÓN DE FIREBASE
+        // 1. CONFIGURACIÓN DE FIREBASE
         // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyD13N4-9MjTrmlPwGP7mves0Exje4v2ACw",
@@ -244,14 +228,12 @@
             measurementId: "G-8T4CPC1BQ3"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const analytics = getAnalytics(app);
-
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         console.log('✅ Firebase inicializado');
 
         // ============================================================
-        // 3. REFERENCIAS AL DOM
+        // 2. REFERENCIAS AL DOM
         // ============================================================
         const form = document.getElementById('loginForm');
         const emailInput = document.getElementById('email');
@@ -260,21 +242,21 @@
         const btnText = document.getElementById('btnText');
         const btnSpinner = document.getElementById('btnSpinner');
         const errorMsg = document.getElementById('errorMsg');
-        const forgotLink = document.getElementById('forgotLink');
-        const registerLink = document.getElementById('registerLink');
 
         // ============================================================
-        // 4. REDIRIGIR SI YA ESTÁ LOGUEADO
+        // 3. REDIRIGIR SI YA ESTÁ LOGUEADO
         // ============================================================
         if (localStorage.getItem('waevohosting_token')) {
             window.location.href = '/dashboard.html';
         }
 
         // ============================================================
-        // 5. LOGIN CON FIREBASE (email + contraseña)
+        // 4. LOGIN CON FIREBASE (email + contraseña)
         // ============================================================
-        form.addEventListener('submit', async (e) => {
+        form.addEventListener('submit', function(e) {
+            // Prevenir el envío tradicional (recarga)
             e.preventDefault();
+            console.log('🖱️ Formulario enviado');
 
             const email = emailInput.value.trim();
             const password = passwordInput.value;
@@ -292,75 +274,79 @@
 
             console.log('🔄 Intentando login con Firebase:', email);
 
-            try {
-                // ============================================================
-                // 5a. Autenticar con Firebase (email/contraseña)
-                // ============================================================
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                const idToken = await user.getIdToken();
+            // ============================================================
+            // 5. Autenticar con Firebase (email/contraseña)
+            // ============================================================
+            auth.signInWithEmailAndPassword(email, password)
+                .then(async (userCredential) => {
+                    const user = userCredential.user;
+                    console.log('✅ Firebase login exitoso:', user.email);
+                    const idToken = await user.getIdToken();
 
-                console.log('✅ Firebase login exitoso:', user.email);
+                    // ============================================================
+                    // 6. Enviar el token al backend de Vercel
+                    // ============================================================
+                    return fetch('/api/firebase-auth', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: idToken }),
+                    });
+                })
+                .then(async (response) => {
+                    const data = await response.json();
+                    console.log('📦 Respuesta del backend:', data);
 
-                // ============================================================
-                // 5b. Enviar el token al backend de Vercel
-                // ============================================================
-                const response = await fetch('/api/firebase-auth', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: idToken }),
+                    if (response.ok && data.success) {
+                        localStorage.setItem('waevohosting_token', data.token);
+                        localStorage.setItem('waevohosting_user', JSON.stringify(data.user));
+                        window.location.href = '/dashboard.html';
+                    } else {
+                        errorMsg.textContent = data.error || 'Error al autenticar con Firebase.';
+                        console.error('Error backend:', data);
+                    }
+                })
+                .catch((error) => {
+                    console.error('❌ Error en login:', error);
+
+                    if (error.code === 'auth/user-not-found') {
+                        errorMsg.textContent = '⚠️ Usuario no registrado. Verifica tu correo o regístrate.';
+                    } else if (error.code === 'auth/wrong-password') {
+                        errorMsg.textContent = '⚠️ Contraseña incorrecta. Inténtalo de nuevo.';
+                    } else if (error.code === 'auth/invalid-email') {
+                        errorMsg.textContent = '⚠️ Correo electrónico inválido.';
+                    } else if (error.code === 'auth/too-many-requests') {
+                        errorMsg.textContent = '⚠️ Demasiados intentos. Espera unos minutos.';
+                    } else {
+                        errorMsg.textContent = 'Error al iniciar sesión: ' + (error.message || 'Revisa la consola.');
+                    }
+                })
+                .finally(() => {
+                    // Restaurar botón
+                    loginBtn.disabled = false;
+                    btnText.textContent = 'Iniciar sesión';
+                    btnSpinner.classList.add('hidden');
                 });
+        });
 
-                const data = await response.json();
-                console.log('📦 Respuesta del backend:', data);
-
-                if (response.ok && data.success) {
-                    localStorage.setItem('waevohosting_token', data.token);
-                    localStorage.setItem('waevohosting_user', JSON.stringify(data.user));
-                    window.location.href = '/dashboard.html';
-                } else {
-                    errorMsg.textContent = data.error || 'Error al autenticar con Firebase.';
-                    console.error('Error backend:', data);
-                }
-            } catch (error) {
-                console.error('❌ Error en login:', error);
-
-                // Mensajes de error específicos de Firebase
-                if (error.code === 'auth/user-not-found') {
-                    errorMsg.textContent = '⚠️ Usuario no registrado. Verifica tu correo o regístrate.';
-                } else if (error.code === 'auth/wrong-password') {
-                    errorMsg.textContent = '⚠️ Contraseña incorrecta. Inténtalo de nuevo.';
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMsg.textContent = '⚠️ Correo electrónico inválido.';
-                } else if (error.code === 'auth/too-many-requests') {
-                    errorMsg.textContent = '⚠️ Demasiados intentos. Espera unos minutos.';
-                } else {
-                    errorMsg.textContent = 'Error al iniciar sesión: ' + (error.message || 'Revisa la consola.');
-                }
-            } finally {
-                // Restaurar botón
-                loginBtn.disabled = false;
-                btnText.textContent = 'Iniciar sesión';
-                btnSpinner.classList.add('hidden');
+        // ============================================================
+        // 7. ENTER PARA ENVIAR
+        // ============================================================
+        passwordInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                form.dispatchEvent(new Event('submit'));
             }
         });
 
         // ============================================================
-        // 6. ENTER PARA ENVIAR
+        // 8. ENLACES
         // ============================================================
-        passwordInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') form.dispatchEvent(new Event('submit'));
-        });
-
-        // ============================================================
-        // 7. ENLACES
-        // ============================================================
-        forgotLink.addEventListener('click', (e) => {
+        document.getElementById('forgotLink').addEventListener('click', function(e) {
             e.preventDefault();
             alert('🔐 Funcionalidad de restablecimiento de contraseña próximamente.');
         });
 
-        registerLink.addEventListener('click', (e) => {
+        document.getElementById('registerLink').addEventListener('click', function(e) {
             e.preventDefault();
             alert('📝 El registro de usuarios se gestiona desde Firebase. Contacta con el administrador.');
         });
