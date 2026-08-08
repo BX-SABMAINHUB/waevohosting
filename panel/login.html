@@ -6,6 +6,7 @@
     <title>WaevoHosting · Iniciar sesión</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
     <style>
+        /* ===== RESET Y BASE ===== */
         * {
             margin: 0;
             padding: 0;
@@ -45,6 +46,7 @@
             background: linear-gradient(135deg, #a78bfa, #60a5fa);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         .logo p {
             color: #94a3b8;
@@ -265,16 +267,30 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SCRIPTS: Firebase CDN (siempre funciona) + LOG -->
+    <!-- SCRIPTS: FIREBASE MODULAR (ES Modules) -->
     <!-- ============================================================ -->
-    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js",
+                "firebase/analytics": "https://www.gstatic.com/firebasejs/10.13.1/firebase-analytics.js"
+            }
+        }
+    </script>
 
-    <script>
-        console.log('✅ Script cargado correctamente');
+    <script type="module">
+        // ============================================================
+        // 1. IMPORTAR FIREBASE
+        // ============================================================
+        import { initializeApp } from 'firebase/app';
+        import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+        import { getAnalytics } from 'firebase/analytics';
+
+        console.log('✅ Firebase modular cargado');
 
         // ============================================================
-        // 1. CONFIGURACIÓN DE FIREBASE
+        // 2. CONFIGURACIÓN DE FIREBASE
         // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyD13N4-9MjTrmlPwGP7mves0Exje4v2ACw",
@@ -288,84 +304,97 @@
         };
 
         // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const provider = new firebase.auth.GoogleAuthProvider();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+        const analytics = getAnalytics(app);
+
         console.log('✅ Firebase inicializado');
 
         // ============================================================
-        // 2. REFERENCIAS AL DOM
+        // 3. REFERENCIAS AL DOM
         // ============================================================
         const googleBtn = document.getElementById('googleLoginBtn');
-        console.log('🔘 Botón encontrado:', googleBtn);
+        const errorMsg = document.getElementById('errorMsg');
+        console.log('🔘 Botón Google encontrado:', googleBtn);
 
         // ============================================================
-        // 3. LOGIN CON GOOGLE (FIREBASE)
+        // 4. LOGIN CON GOOGLE (FIREBASE)
         // ============================================================
         if (googleBtn) {
             googleBtn.addEventListener('click', function(e) {
-                console.log('🖱️ Click en el botón de Google detectado!');
+                console.log('🖱️ Click en Google detectado!');
                 e.preventDefault();
 
-                // Deshabilitar el botón y mostrar spinner
+                // 1. Deshabilitar botón y mostrar spinner
                 googleBtn.disabled = true;
                 googleBtn.innerHTML = `
                     <span class="spinner" style="display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.2);border-top:2px solid #fff;border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:middle;margin-right:0.5rem;"></span>
                     Conectando con Google...
                 `;
+                errorMsg.textContent = '';
 
-                // Iniciar sesión con Google
-                auth.signInWithPopup(provider)
-                    .then(async (result) => {
-                        console.log('✅ Google login exitoso:', result.user.email);
-                        const user = result.user;
-                        const idToken = await user.getIdToken();
+                console.log('🔄 Spinner activado');
 
-                        // Enviar el token a tu backend de Vercel
-                        return fetch('/api/firebase-auth', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ token: idToken }),
+                // 2. Esperar 5 segundos (simulando preparación)
+                setTimeout(() => {
+                    console.log('⏳ 5 segundos completados, abriendo ventana de Google...');
+
+                    // 3. Iniciar sesión con Google (popup)
+                    auth.signInWithPopup(provider)
+                        .then(async (result) => {
+                            console.log('✅ Google login exitoso:', result.user.email);
+                            const user = result.user;
+                            const idToken = await user.getIdToken();
+
+                            // Enviar el token a tu backend de Vercel
+                            return fetch('/api/firebase-auth', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ token: idToken }),
+                            });
+                        })
+                        .then(async (response) => {
+                            const data = await response.json();
+                            console.log('📦 Respuesta del backend:', data);
+
+                            if (response.ok && data.success) {
+                                localStorage.setItem('waevohosting_token', data.token);
+                                localStorage.setItem('waevohosting_user', JSON.stringify(data.user));
+                                window.location.href = '/dashboard.html';
+                            } else {
+                                errorMsg.textContent = data.error || 'Error al autenticar con Google.';
+                                console.error('Error backend:', data);
+                            }
+                        })
+                        .catch((error) => {
+                            console.error('❌ Error en Google Login:', error);
+                            if (error.code === 'auth/unauthorized-domain') {
+                                errorMsg.textContent = '⚠️ Dominio no autorizado. Añade "panel.waevohosting.es" en Firebase Console.';
+                            } else if (error.code === 'auth/popup-closed-by-user') {
+                                errorMsg.textContent = 'Ventana de Google cerrada. Inténtalo de nuevo.';
+                            } else {
+                                errorMsg.textContent = 'Error al iniciar sesión con Google: ' + (error.message || 'Revisa la consola.');
+                            }
+                        })
+                        .finally(() => {
+                            // Restaurar el botón
+                            googleBtn.disabled = false;
+                            googleBtn.innerHTML = `
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="22" height="22">
+                                    <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
+                                    <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
+                                    <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
+                                    <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
+                                </svg>
+                                Iniciar sesión con Google
+                            `;
+                            console.log('🔄 Botón restaurado');
                         });
-                    })
-                    .then(async (response) => {
-                        const data = await response.json();
-                        console.log('📦 Respuesta del backend:', data);
-
-                        if (response.ok && data.success) {
-                            localStorage.setItem('waevohosting_token', data.token);
-                            localStorage.setItem('waevohosting_user', JSON.stringify(data.user));
-                            window.location.href = '/dashboard.html';
-                        } else {
-                            document.getElementById('errorMsg').textContent = data.error || 'Error al autenticar con Google.';
-                            console.error('Error backend:', data);
-                        }
-                    })
-                    .catch((error) => {
-                        console.error('❌ Error en Google Login:', error);
-                        const errorMsg = document.getElementById('errorMsg');
-                        if (error.code === 'auth/unauthorized-domain') {
-                            errorMsg.textContent = '⚠️ Dominio no autorizado. Añade "panel.waevohosting.es" en Firebase Console.';
-                        } else {
-                            errorMsg.textContent = 'Error al iniciar sesión con Google: ' + (error.message || 'Revisa la consola.');
-                        }
-                    })
-                    .finally(() => {
-                        // Restaurar el botón
-                        googleBtn.disabled = false;
-                        googleBtn.innerHTML = `
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="22" height="22">
-                                <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
-                                <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
-                                <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
-                                <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
-                            </svg>
-                            Iniciar sesión con Google
-                        `;
-                    });
+                }, 5000); // 5 segundos de espera con el spinner
             });
         } else {
-            console.error('❌ No se encontró el botón de Google');
+            console.error('❌ No se encontró el botón de Google en el DOM');
         }
     </script>
 
