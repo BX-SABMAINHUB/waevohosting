@@ -206,10 +206,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
 
     <script>
-        console.log('✅ Script cargado');
+        console.log('✅ Script cargado correctamente');
 
         // ============================================================
-        // 1. CONFIGURACIÓN DE FIREBASE (extraída de tu código)
+        // 1. CONFIGURACIÓN DE FIREBASE (tomada de tu código anterior)
         // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyD1zUmhiUVDv-ZYyJF7vTwGaS1AO9t9jiE",
@@ -241,7 +241,7 @@
         }
 
         // ============================================================
-        // 4. LOGIN CON GOOGLE
+        // 4. LOGIN CON GOOGLE (con el flujo completo)
         // ============================================================
         googleBtn.addEventListener('click', function() {
             // Deshabilitar botón y mostrar spinner
@@ -252,6 +252,8 @@
             `;
             errorMsg.textContent = '';
 
+            console.log('🔄 Intentando login con Google...');
+
             // Iniciar sesión con Google (popup)
             auth.signInWithPopup(provider)
                 .then(async (result) => {
@@ -259,7 +261,7 @@
                     const user = result.user;
                     const idToken = await user.getIdToken();
 
-                    // Enviar el token a tu backend de Pterodactyl
+                    // Enviar el token a tu backend de Vercel
                     return fetch('/api/index?path=firebase-auth', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -301,6 +303,7 @@
                         </svg>
                         Iniciar sesión con Google
                     `;
+                    console.log('🔄 Botón restaurado');
                 });
         });
 
