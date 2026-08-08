@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Waevo · Login</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WaevoHosting · Login</title>
     <style>
-        /* ===== RESET ===== */
         * {
             margin: 0;
             padding: 0;
@@ -21,8 +20,6 @@
             padding: 1.5rem;
             background-image: radial-gradient(ellipse at 50% 0%, #1a1f2e 0%, #12161c 70%);
         }
-
-        /* ===== TARJETA DE LOGIN ===== */
         .login-card {
             background: #1a1f2e;
             border-radius: 0.75rem;
@@ -32,8 +29,6 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.04);
         }
-
-        /* ===== LOGO ===== */
         .logo {
             text-align: center;
             margin-bottom: 1.8rem;
@@ -56,7 +51,6 @@
             font-weight: 500;
         }
 
-        /* ===== FORMULARIO ===== */
         .form-group {
             margin-bottom: 1.2rem;
         }
@@ -77,18 +71,14 @@
             border-radius: 0.4rem;
             color: #e0e5ee;
             font-size: 1rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: border-color 0.2s;
         }
         .form-group input:focus {
             outline: none;
             border-color: #7c6cf0;
             box-shadow: 0 0 0 3px rgba(124, 108, 240, 0.15);
         }
-        .form-group input::placeholder {
-            color: #475569;
-        }
 
-        /* ===== BOTÓN ===== */
         .btn-login {
             width: 100%;
             padding: 0.75rem;
@@ -113,24 +103,60 @@
             transform: none;
         }
 
-        /* ===== FOOTER ===== */
+        .btn-google {
+            width: 100%;
+            padding: 0.7rem;
+            background: #0d1117;
+            border: 1px solid #2d3548;
+            border-radius: 0.4rem;
+            color: #e0e5ee;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .btn-google:hover {
+            background: #1a1f2e;
+            border-color: #7c6cf0;
+        }
+        .btn-google img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.2rem 0;
+            color: #475569;
+            font-size: 0.8rem;
+        }
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            border-top: 1px solid #2d3548;
+        }
+
         .footer {
             display: flex;
             justify-content: space-between;
-            align-items: center;
             margin-top: 1.2rem;
             font-size: 0.8rem;
         }
         .footer a {
             color: #94a3b8;
             text-decoration: none;
-            transition: color 0.2s;
         }
         .footer a:hover {
             color: #a78bfa;
         }
 
-        /* ===== COPYRIGHT ===== */
         .copyright {
             text-align: center;
             margin-top: 1.8rem;
@@ -138,28 +164,24 @@
             color: #475569;
             border-top: 1px solid #2d3548;
             padding-top: 1.2rem;
-            letter-spacing: 0.2px;
         }
         .copyright span {
             color: #7c6cf0;
             font-weight: 600;
         }
 
-        /* ===== ERROR ===== */
         .error-msg {
             color: #f87171;
             font-size: 0.85rem;
             text-align: center;
             margin-top: 0.8rem;
-            min-height: 1.5rem;
         }
 
-        /* ===== SPINNER ===== */
         .spinner {
             display: inline-block;
             width: 18px;
             height: 18px;
-            border: 2px solid rgba(255,255,255,0.2);
+            border: 2px solid rgba(255, 255, 255, 0.2);
             border-top: 2px solid #fff;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
@@ -167,13 +189,14 @@
             margin-right: 0.5rem;
         }
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
         .hidden {
             display: none;
         }
 
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 480px) {
             .login-card {
                 padding: 1.8rem 1.2rem;
@@ -187,44 +210,71 @@
 </head>
 <body>
     <div class="login-card">
-        <!-- Logo -->
         <div class="logo">
             <h1>Waevo<span>Hosting</span></h1>
             <p>Panel de control</p>
         </div>
 
-        <!-- Formulario -->
+        <!-- ===== FORMULARIO TRADICIONAL ===== -->
         <form id="loginForm">
             <div class="form-group">
                 <label for="email">Correo electrónico</label>
-                <input type="email" id="email" placeholder="tu@email.com" required autofocus>
+                <input type="email" id="email" placeholder="tu@email.com" required />
             </div>
             <div class="form-group">
                 <label for="password">Contraseña</label>
-                <input type="password" id="password" placeholder="••••••••" required>
+                <input type="password" id="password" placeholder="••••••••" required />
             </div>
-
             <button type="submit" class="btn-login" id="loginBtn">
                 <span id="btnText">Iniciar sesión</span>
                 <span id="btnSpinner" class="spinner hidden"></span>
             </button>
-
             <div class="error-msg" id="errorMsg"></div>
         </form>
 
-        <!-- Footer -->
+        <div class="divider">O inicia con</div>
+
+        <!-- ===== BOTÓN DE GOOGLE ===== -->
+        <button id="googleLoginBtn" class="btn-google">
+            <img src="https://img.icons8.com/color/24/000000/google-logo.png" alt="Google" />
+            Iniciar sesión con Google
+        </button>
+
         <div class="footer">
             <a href="#" id="forgotLink">¿Olvidaste tu contraseña?</a>
             <a href="#" id="registerLink">Registrarse</a>
         </div>
 
-        <!-- Copyright -->
         <div class="copyright">
             <span>Waevo</span> Hosting · 2026
         </div>
     </div>
 
-    <script>
+    <!-- ============================================================ -->
+    <!-- SCRIPTS -->
+    <!-- ============================================================ -->
+    <script type="module">
+        // ============================================================
+        // CONFIGURACIÓN DE FIREBASE
+        // ============================================================
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js';
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from 'https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD13N4-9MjTrmlPwGP7mves0Exje4v2ACw",
+            authDomain: "kahoot-8529e.firebaseapp.com",
+            databaseURL: "https://kahoot-8529e-default-rtdb.firebaseio.com",
+            projectId: "kahoot-8529e",
+            storageBucket: "kahoot-8529e.firebasestorage.app",
+            messagingSenderId: "313414356056",
+            appId: "1:313414356056:web:4aab4587f7df9393008e2d",
+            measurementId: "G-8T4CPC1BQ3"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
         // ============================================================
         // REFERENCIAS
         // ============================================================
@@ -235,6 +285,7 @@
         const btnText = document.getElementById('btnText');
         const btnSpinner = document.getElementById('btnSpinner');
         const errorMsg = document.getElementById('errorMsg');
+        const googleBtn = document.getElementById('googleLoginBtn');
         const forgotLink = document.getElementById('forgotLink');
         const registerLink = document.getElementById('registerLink');
 
@@ -246,11 +297,10 @@
         }
 
         // ============================================================
-        // ENVÍO DEL FORMULARIO
+        // LOGIN TRADICIONAL
         // ============================================================
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const email = emailInput.value.trim();
             const password = passwordInput.value;
 
@@ -259,7 +309,6 @@
                 return;
             }
 
-            // Deshabilitar botón y mostrar spinner
             loginBtn.disabled = true;
             btnText.textContent = 'Verificando...';
             btnSpinner.classList.remove('hidden');
@@ -268,27 +317,21 @@
             try {
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email, password })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
                 });
 
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    // Guardar token y datos del usuario
                     localStorage.setItem('waevohosting_token', data.token);
                     localStorage.setItem('waevohosting_user', JSON.stringify(data.user));
-
-                    // Redirigir al dashboard
                     window.location.href = '/dashboard.html';
                 } else {
-                    errorMsg.textContent = data.error || 'Credenciales incorrectas. Inténtalo de nuevo.';
+                    errorMsg.textContent = data.error || 'Credenciales incorrectas.';
                 }
             } catch (error) {
-                console.error('Error en login:', error);
-                errorMsg.textContent = 'Error de conexión con el servidor. Inténtalo de nuevo.';
+                errorMsg.textContent = 'Error de conexión con el servidor.';
             } finally {
                 loginBtn.disabled = false;
                 btnText.textContent = 'Iniciar sesión';
@@ -297,16 +340,54 @@
         });
 
         // ============================================================
-        // ENTER PARA ENVIAR
+        // LOGIN CON GOOGLE (FIREBASE)
         // ============================================================
-        passwordInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                form.dispatchEvent(new Event('submit'));
+        googleBtn.addEventListener('click', async () => {
+            googleBtn.disabled = true;
+            googleBtn.textContent = 'Conectando...';
+
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                const idToken = await user.getIdToken();
+
+                // Enviar el token a tu backend de Vercel
+                const response = await fetch('/api/firebase-auth', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: idToken }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    localStorage.setItem('waevohosting_token', data.token);
+                    localStorage.setItem('waevohosting_user', JSON.stringify(data.user));
+                    window.location.href = '/dashboard.html';
+                } else {
+                    errorMsg.textContent = data.error || 'Error al autenticar con Google.';
+                }
+            } catch (error) {
+                console.error('Error en Google Login:', error);
+                errorMsg.textContent = 'Error al iniciar sesión con Google. Revisa la consola.';
+            } finally {
+                googleBtn.disabled = false;
+                googleBtn.innerHTML = `
+                    <img src="https://img.icons8.com/color/24/000000/google-logo.png" alt="Google" />
+                    Iniciar sesión con Google
+                `;
             }
         });
 
         // ============================================================
-        // ENLACES (por ahora solo alertas)
+        // ENTER PARA ENVIAR
+        // ============================================================
+        passwordInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') form.dispatchEvent(new Event('submit'));
+        });
+
+        // ============================================================
+        // ENLACES
         // ============================================================
         forgotLink.addEventListener('click', (e) => {
             e.preventDefault();
