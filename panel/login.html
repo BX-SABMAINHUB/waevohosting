@@ -1,248 +1,238 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - WaevoHosting</title>
-    
-    <!-- Configuración del Import Map para Firebase -->
-    <script type="importmap">
-        {
-            "imports": {
-                "firebase/app": "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js",
-                "firebase/auth": "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js"
-            }
-        }
-    </script>
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WaevoHosting · Iniciar sesión</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
     <style>
-        /* Variables y Reset */
-        :root {
-            --bg-body: #0f172a; /* Azul oscuro estilo Pterodactyl */
-            --bg-panel: #1e293b;
-            --bg-input: #334155;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --primary: #8b5cf6; /* Morado */
-            --secondary: #3b82f6; /* Azul */
-            --error: #ef4444;
-        }
-
+        /* ===== RESET Y BASE ===== */
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            box-sizing: border-box;
         }
-
         body {
-            background-color: var(--bg-body);
-            color: var(--text-main);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #0b0e14;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            padding: 1rem;
+            padding: 1.5rem;
+            background-image: radial-gradient(ellipse at 50% 0%, #1a1f2e 0%, #0b0e14 70%);
         }
-
-        /* Panel de Login */
-        .login-container {
-            background-color: var(--bg-panel);
+        .login-card {
+            background: rgba(18, 24, 38, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(100, 120, 200, 0.12);
+            border-radius: 2rem;
+            padding: 2.8rem 2.5rem;
+            max-width: 440px;
             width: 100%;
-            max-width: 420px;
-            padding: 2.5rem;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(100, 120, 200, 0.05);
         }
-
-        /* Logo */
         .logo {
             text-align: center;
+            margin-bottom: 2rem;
+        }
+        .logo h1 {
             font-size: 2rem;
             font-weight: 800;
-            margin-bottom: 2rem;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #e0e5ee;
+            letter-spacing: -0.03em;
+        }
+        .logo h1 span {
+            background: linear-gradient(135deg, #a78bfa, #60a5fa);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-
-        /* Formulario Tradicional */
+        .logo p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+            font-weight: 400;
+        }
         .form-group {
             margin-bottom: 1.2rem;
         }
-
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin-bottom: 0.4rem;
         }
-
         .form-group input {
             width: 100%;
-            padding: 0.75rem 1rem;
-            background-color: var(--bg-input);
-            border: 1px solid transparent;
-            border-radius: 6px;
-            color: var(--text-main);
+            padding: 0.8rem 1.2rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(100, 120, 200, 0.15);
+            border-radius: 0.8rem;
+            color: #e0e5ee;
             font-size: 1rem;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-
         .form-group input:focus {
             outline: none;
-            border-color: var(--primary);
+            border-color: #7c6cf0;
+            box-shadow: 0 0 0 3px rgba(124, 108, 240, 0.12);
         }
-
-        .btn {
+        .form-group input::placeholder {
+            color: #475569;
+        }
+        .btn-login {
             width: 100%;
-            padding: 0.75rem;
+            padding: 0.85rem;
+            background: linear-gradient(135deg, #7c6cf0, #5b4ad0);
             border: none;
-            border-radius: 6px;
-            font-size: 1rem;
+            border-radius: 0.8rem;
+            color: white;
             font-weight: 600;
+            font-size: 1rem;
             cursor: pointer;
-            transition: opacity 0.2s, transform 0.1s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
+            transition: transform 0.15s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(124, 108, 240, 0.25);
+            margin-top: 0.25rem;
         }
-
-        .btn:active {
-            transform: scale(0.98);
+        .btn-login:hover {
+            transform: scale(1.01);
+            box-shadow: 0 6px 25px rgba(124, 108, 240, 0.35);
         }
-
-        .btn:disabled {
-            opacity: 0.7;
+        .btn-login:disabled {
+            opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            margin-top: 1rem;
-        }
-
-        .btn-primary:hover {
-            opacity: 0.9;
-        }
-
-        /* Divisor */
-        .divider {
-            display: flex;
-            align-items: center;
+        .error-msg {
+            color: #f87171;
+            font-size: 0.85rem;
             text-align: center;
-            margin: 2rem 0;
-            color: var(--text-muted);
+            margin-top: 0.8rem;
+            min-height: 1.5rem;
+            word-break: break-word;
+        }
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .hidden {
+            display: none !important;
+        }
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
             font-size: 0.85rem;
         }
-
-        .divider::before, .divider::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid var(--bg-input);
+        .footer a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.2s;
         }
-
-        .divider:not(:empty)::before {
-            margin-right: .5em;
+        .footer a:hover {
+            color: #a78bfa;
         }
-
-        .divider:not(:empty)::after {
-            margin-left: .5em;
-        }
-
-        /* Botón de Google */
-        .btn-google {
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            border: 1px solid var(--bg-input);
-        }
-
-        .btn-google:hover:not(:disabled) {
-            background-color: #1a2333;
-        }
-
-        /* Spinner (Oculto por defecto) */
-        .spinner {
-            display: none;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Mensajes de Alerta */
-        .alert {
-            display: none;
-            padding: 0.75rem;
-            border-radius: 6px;
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
+        .copyright {
             text-align: center;
+            margin-top: 1.8rem;
+            font-size: 0.7rem;
+            color: #475569;
+            border-top: 1px solid #2d3548;
+            padding-top: 1.2rem;
+            letter-spacing: 0.2px;
         }
-
-        .alert-error {
-            background-color: rgba(239, 68, 68, 0.1);
-            color: var(--error);
-            border: 1px solid rgba(239, 68, 68, 0.3);
+        .copyright span {
+            color: #7c6cf0;
+            font-weight: 600;
         }
-        
-        .alert-success {
-            background-color: rgba(34, 197, 94, 0.1);
-            color: #4ade80;
-            border: 1px solid rgba(34, 197, 94, 0.3);
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 2rem 1.5rem;
+            }
+            .footer {
+                flex-direction: column;
+                align-items: center;
+                gap: 0.5rem;
+            }
         }
     </style>
 </head>
 <body>
 
-    <div class="login-container">
-        <h1 class="logo">WaevoHosting</h1>
-        
-        <div id="alertMessage" class="alert"></div>
+    <div class="login-card">
+        <div class="logo">
+            <h1>Waevo<span>Hosting</span></h1>
+            <p>Panel de control</p>
+        </div>
 
-        <form id="traditionalLoginForm" onsubmit="event.preventDefault();">
+        <!-- ===== FORMULARIO DE LOGIN (FIREBASE) ===== -->
+        <form id="loginForm">
             <div class="form-group">
-                <label for="email">Correo Electrónico</label>
-                <input type="email" id="email" placeholder="tu@email.com" required>
+                <label for="email">Correo electrónico</label>
+                <input type="email" id="email" placeholder="tu@email.com" required autofocus />
             </div>
             <div class="form-group">
                 <label for="password">Contraseña</label>
-                <input type="password" id="password" placeholder="••••••••" required>
+                <input type="password" id="password" placeholder="••••••••" required />
             </div>
-            <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+            <button type="submit" class="btn-login" id="loginBtn">
+                <span id="btnText">Iniciar sesión</span>
+                <span id="btnSpinner" class="spinner hidden"></span>
+            </button>
+            <div class="error-msg" id="errorMsg"></div>
         </form>
 
-        <div class="divider">O continúa con</div>
-
-        <button type="button" id="btnGoogle" class="btn btn-google">
-            <!-- Icono SVG de Google -->
-            <svg id="googleIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48">
-                <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
-                <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
-                <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
-                <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
-            </svg>
-            <div id="googleSpinner" class="spinner"></div>
-            <span id="googleText">Iniciar sesión con Google</span>
-        </button>
+        <div class="footer">
+            <a href="#" id="forgotLink">¿Olvidaste tu contraseña?</a>
+            <a href="#" id="registerLink">Registrarse</a>
+        </div>
+        <div class="copyright">
+            <span>Waevo</span> Hosting · 2026
+        </div>
     </div>
 
-    <!-- Script Modular de Firebase -->
-    <script type="module">
-        import { initializeApp } from 'firebase/app';
-        import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+    <!-- ============================================================ -->
+    <!-- SCRIPTS: FIREBASE (email + contraseña)                       -->
+    <!-- ============================================================ -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js",
+                "firebase/analytics": "https://www.gstatic.com/firebasejs/10.13.1/firebase-analytics.js"
+            }
+        }
+    </script>
 
-        // 1. Configuración de Firebase (proporcionada por ti)
+    <script type="module">
+        // ============================================================
+        // 1. IMPORTAR FIREBASE
+        // ============================================================
+        import { initializeApp } from 'firebase/app';
+        import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+        import { getAnalytics } from 'firebase/analytics';
+
+        console.log('✅ Firebase modular cargado');
+
+        // ============================================================
+        // 2. CONFIGURACIÓN DE FIREBASE
+        // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyD13N4-9MjTrmlPwGP7mves0Exje4v2ACw",
             authDomain: "kahoot-8529e.firebaseapp.com",
@@ -254,96 +244,127 @@
             measurementId: "G-8T4CPC1BQ3"
         };
 
-        // 2. Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
+        const analytics = getAnalytics(app);
 
-        // 3. Referencias del DOM
-        const btnGoogle = document.getElementById('btnGoogle');
-        const googleIcon = document.getElementById('googleIcon');
-        const googleSpinner = document.getElementById('googleSpinner');
-        const googleText = document.getElementById('googleText');
-        const alertMessage = document.getElementById('alertMessage');
+        console.log('✅ Firebase inicializado');
 
-        // Función para mostrar mensajes
-        function showAlert(msg, isSuccess = false) {
-            alertMessage.style.display = 'block';
-            alertMessage.textContent = msg;
-            alertMessage.className = isSuccess ? 'alert alert-success' : 'alert alert-error';
+        // ============================================================
+        // 3. REFERENCIAS AL DOM
+        // ============================================================
+        const form = document.getElementById('loginForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const btnText = document.getElementById('btnText');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const errorMsg = document.getElementById('errorMsg');
+        const forgotLink = document.getElementById('forgotLink');
+        const registerLink = document.getElementById('registerLink');
+
+        // ============================================================
+        // 4. REDIRIGIR SI YA ESTÁ LOGUEADO
+        // ============================================================
+        if (localStorage.getItem('waevohosting_token')) {
+            window.location.href = '/dashboard.html';
         }
 
-        function hideAlert() {
-            alertMessage.style.display = 'none';
-        }
+        // ============================================================
+        // 5. LOGIN CON FIREBASE (email + contraseña)
+        // ============================================================
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-        // 4. Lógica del Botón de Google (CRÍTICA)
-        btnGoogle.addEventListener('click', async () => {
-            hideAlert();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
 
-            // Estado de Carga
-            btnGoogle.disabled = true;
-            googleIcon.style.display = 'none';
-            googleSpinner.style.display = 'block';
-            googleText.textContent = 'Procesando...';
+            if (!email || !password) {
+                errorMsg.textContent = 'Debes completar todos los campos.';
+                return;
+            }
+
+            // Deshabilitar botón y mostrar spinner
+            loginBtn.disabled = true;
+            btnText.textContent = 'Verificando...';
+            btnSpinner.classList.remove('hidden');
+            errorMsg.textContent = '';
+
+            console.log('🔄 Intentando login con Firebase:', email);
 
             try {
-                // REQUISITO CRÍTICO: Esperar 5 segundos exactos ANTES de abrir la ventana de Google
-                await new Promise(resolve => setTimeout(resolve, 5000));
+                // ============================================================
+                // 5a. Autenticar con Firebase (email/contraseña)
+                // ============================================================
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                const idToken = await user.getIdToken();
 
-                googleText.textContent = 'Esperando a Google...';
+                console.log('✅ Firebase login exitoso:', user.email);
 
-                // Abrir Popup de Google OAuth
-                const result = await signInWithPopup(auth, provider);
-                
-                googleText.textContent = 'Autenticando...';
-
-                // Obtener el Token de Firebase
-                const idToken = await result.user.getIdToken();
-
-                // Enviar al Backend (Método POST)
+                // ============================================================
+                // 5b. Enviar el token al backend de Vercel
+                // ============================================================
                 const response = await fetch('/api/firebase-auth', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ token: idToken })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: idToken }),
                 });
 
-                if (response.ok) {
-                    showAlert('Inicio de sesión exitoso. Redirigiendo...', true);
-                    // Redirigir si la respuesta es exitosa
+                const data = await response.json();
+                console.log('📦 Respuesta del backend:', data);
+
+                if (response.ok && data.success) {
+                    localStorage.setItem('waevohosting_token', data.token);
+                    localStorage.setItem('waevohosting_user', JSON.stringify(data.user));
                     window.location.href = '/dashboard.html';
                 } else {
-                    throw new Error('El backend rechazó la autenticación.');
+                    errorMsg.textContent = data.error || 'Error al autenticar con Firebase.';
+                    console.error('Error backend:', data);
                 }
-
             } catch (error) {
-                // Manejo de errores comunes de Firebase
-                console.error("Error durante autenticación: ", error);
-                
-                let errorMsg = 'Ocurrió un error inesperado al iniciar sesión.';
-                
-                if (error.code === 'auth/popup-closed-by-user') {
-                    errorMsg = 'Cancelaste el inicio de sesión con Google.';
-                } else if (error.code === 'auth/unauthorized-domain') {
-                    errorMsg = 'Este dominio no está autorizado en la consola de Firebase.';
-                } else if (error.code === 'auth/network-request-failed') {
-                    errorMsg = 'Error de red. Revisa tu conexión a internet.';
-                } else if (error.message) {
-                    errorMsg = error.message; // Mensaje genérico del throw new Error o fetch
+                console.error('❌ Error en login:', error);
+
+                // Mensajes de error específicos de Firebase
+                if (error.code === 'auth/user-not-found') {
+                    errorMsg.textContent = '⚠️ Usuario no registrado. Verifica tu correo o regístrate.';
+                } else if (error.code === 'auth/wrong-password') {
+                    errorMsg.textContent = '⚠️ Contraseña incorrecta. Inténtalo de nuevo.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMsg.textContent = '⚠️ Correo electrónico inválido.';
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorMsg.textContent = '⚠️ Demasiados intentos. Espera unos minutos.';
+                } else {
+                    errorMsg.textContent = 'Error al iniciar sesión: ' + (error.message || 'Revisa la consola.');
                 }
-
-                showAlert(errorMsg);
-
             } finally {
-                // Restaurar estado del botón
-                btnGoogle.disabled = false;
-                googleIcon.style.display = 'block';
-                googleSpinner.style.display = 'none';
-                googleText.textContent = 'Iniciar sesión con Google';
+                // Restaurar botón
+                loginBtn.disabled = false;
+                btnText.textContent = 'Iniciar sesión';
+                btnSpinner.classList.add('hidden');
             }
         });
+
+        // ============================================================
+        // 6. ENTER PARA ENVIAR
+        // ============================================================
+        passwordInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') form.dispatchEvent(new Event('submit'));
+        });
+
+        // ============================================================
+        // 7. ENLACES
+        // ============================================================
+        forgotLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            alert('🔐 Funcionalidad de restablecimiento de contraseña próximamente.');
+        });
+
+        registerLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            alert('📝 El registro de usuarios se gestiona desde Firebase. Contacta con el administrador.');
+        });
     </script>
+
 </body>
 </html>
