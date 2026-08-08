@@ -7,7 +7,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/dashboard.html"
+      "destination": "/login.html"
     }
   ],
   "headers": [
