@@ -251,12 +251,10 @@
         }
 
         // ============================================================
-        // 4. LOGIN CON FIREBASE (email + contraseña)
+        // 4. FUNCIÓN DE LOGIN (llamada desde el botón)
         // ============================================================
-        form.addEventListener('submit', function(e) {
-            // Prevenir el envío tradicional (recarga)
-            e.preventDefault();
-            console.log('🖱️ Formulario enviado');
+        function handleLogin() {
+            console.log('🖱️ Botón clickeado');
 
             const email = emailInput.value.trim();
             const password = passwordInput.value;
@@ -326,15 +324,29 @@
                     btnText.textContent = 'Iniciar sesión';
                     btnSpinner.classList.add('hidden');
                 });
-        });
+        }
 
         // ============================================================
-        // 7. ENTER PARA ENVIAR
+        // 7. ASIGNAR EVENTOS (botón y tecla Enter)
         // ============================================================
+
+        // Evento click en el botón
+        loginBtn.addEventListener('click', function(e) {
+            e.preventDefault(); // Evita el envío del formulario
+            handleLogin();
+        });
+
+        // Evento submit del formulario (por si se envía con Enter)
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Evita recarga
+            handleLogin();
+        });
+
+        // Tecla Enter en el campo contraseña
         passwordInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                form.dispatchEvent(new Event('submit'));
+                handleLogin();
             }
         });
 
