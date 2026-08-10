@@ -1,15 +1,5 @@
-// panel/api/proxy.js - Proxy para ngrok con manejo de errores
+// api/proxy.js
 export default async function handler(req, res) {
-    // Configurar CORS
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-    // Responder a preflight (OPTIONS)
-    if (req.method === 'OPTIONS') {
-        return res.status(200).end();
-    }
-
     // Solo permitir POST
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Método no permitido' });
@@ -23,7 +13,7 @@ export default async function handler(req, res) {
 
     try {
         // ============================================================
-        // ENVÍA LAS CREDENCIALES A NGROK (Pterodactyl)
+        // ENVÍA LAS CREDENCIALES A NGROK
         // ============================================================
         const response = await fetch('https://unending-jazz-bush.ngrok-free.dev/auth/login', {
             method: 'POST',
@@ -35,13 +25,16 @@ export default async function handler(req, res) {
             body: JSON.stringify({ email, password }),
         });
 
-        // Obtener la respuesta como texto primero (para depuración)
+        // Obtener la respuesta como texto (para depuración)
         const text = await response.text();
+        console.log('Respuesta de ngrok:', text.substring(0, 200));
+
+        // Intentar parsear como JSON
         let data;
         try {
             data = JSON.parse(text);
         } catch (e) {
-            console.error('Respuesta no es JSON:', text);
+            console.error('Error al parsear JSON:', text);
             return res.status(500).json({
                 error: 'El servidor devolvió una respuesta no válida',
                 details: text.substring(0, 100),
@@ -50,7 +43,6 @@ export default async function handler(req, res) {
 
         // Devolver la respuesta
         return res.status(response.status).json(data);
-
     } catch (error) {
         console.error('Error en proxy:', error.message);
         return res.status(500).json({
