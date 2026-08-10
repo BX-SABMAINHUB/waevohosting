@@ -1,11 +1,10 @@
 // api/login.js
 const axios = require('axios');
-const bcrypt = require('bcryptjs'); // Para comparar la contraseña hasheada
 
 const PANEL_URL = process.env.PTERODACTYL_PANEL_URL;
-const API_KEY = process.env.PTERODACTYL_API_KEY;
 
 module.exports = async (req, res) => {
+  // Solo permitir POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido' });
   }
@@ -17,42 +16,47 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // 1. Obtener todos los usuarios del panel
-    const response = await axios.get(`${PANEL_URL}/api/application/users`, {
-      headers: {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Accept': 'application/json',
+    // ============================================================
+    // 1. Autenticar contra el login de Pterodactyl
+    // ============================================================
+    const loginResponse = await axios.post(
+      `${PANEL_URL}/auth/login`,
+      {
+        email: email,
+        password: password,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true', // Si usas ngrok
+        },
+        // No seguir redirecciones para capturar la sesión
+        maxRedirects: 0,
+        validateStatus: (status) => status < 400,
       }
-    });
+    );
 
-    const users = response.data.data;
-    
-    // 2. Buscar el usuario por email
-    const user = users.find(u => u.attributes.email === email);
-    
-    if (!user) {
-      return res.status(401).json({ error: 'Credenciales incorrectas' });
-    }
+    // Si llegamos aquí, el login fue exitoso
+    // Pterodactyl devuelve una cookie de sesión en los headers
+    const cookies = loginResponse.headers['set-cookie'];
 
-    // 3. Comparar la contraseña (Pterodactyl usa bcrypt)
-    const isPasswordValid = await bcrypt.compare(password, user.attributes.password);
-
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Credenciales incorrectas' });
-    }
-
-    // 4. Login exitoso: devolver datos del usuario (sin la contraseña)
+    // ============================================================
+    // 2. Devolver éxito (y la cookie si es necesario)
+    // ============================================================
     res.status(200).json({
       success: true,
-      user: {
-        id: user.attributes.id,
-        email: user.attributes.email,
-        username: user.attributes.username,
-      }
+      message: 'Login exitoso',
+      cookies: cookies, // Opcional: devolver la cookie para el frontend
     });
 
   } catch (error) {
-    console.error('Error en login:', error);
+    // Si Pterodactyl devuelve 302 (redirección) o 401, es que falló
+    if (error.response && (error.response.status === 302 || error.response.status === 401)) {
+      return res.status(401).json({ error: 'Credenciales incorrectas' });
+    }
+
+    console.error('Error en login:', error.message);
     res.status(500).json({ error: 'Error al verificar las credenciales' });
   }
 };
