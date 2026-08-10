@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WaevoHosting · Panel</title>
     <style>
+        /* ===== RESET Y BASE ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Inter', system-ui, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: #0b0e14;
             color: #e0e5ee;
             min-height: 100vh;
@@ -15,23 +16,38 @@
             align-items: center;
             justify-content: center;
             padding: 1.5rem;
+            background-image: radial-gradient(ellipse at 50% 0%, #1a1f2e 0%, #0b0e14 70%);
         }
+
+        /* ===== TARJETA DE LOGIN ===== */
         .card {
-            background: rgba(18,24,38,0.85);
+            background: rgba(18, 24, 38, 0.85);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(100,120,200,0.12);
+            border: 1px solid rgba(100, 120, 200, 0.12);
             border-radius: 2rem;
             padding: 2.8rem 2.5rem;
             max-width: 420px;
             width: 100%;
             box-shadow: 0 30px 60px rgba(0,0,0,0.6);
         }
+
+        /* ===== LOGO ===== */
         .logo { text-align: center; margin-bottom: 2rem; }
-        .logo h1 { font-size: 2rem; font-weight: 800; }
+        .logo h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; }
         .logo h1 span { background: linear-gradient(135deg, #a78bfa, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .logo p { color: #94a3b8; font-size: 0.9rem; margin-top: 0.25rem; }
+
+        /* ===== FORMULARIO ===== */
         .form-group { margin-bottom: 1.2rem; }
-        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; margin-bottom: 0.4rem; }
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 0.4rem;
+        }
         .form-group input {
             width: 100%;
             padding: 0.8rem 1.2rem;
@@ -40,8 +56,16 @@
             border-radius: 0.8rem;
             color: #e0e5ee;
             font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .form-group input:focus { outline: none; border-color: #7c6cf0; box-shadow: 0 0 0 3px rgba(124,108,240,0.12); }
+        .form-group input:focus {
+            outline: none;
+            border-color: #7c6cf0;
+            box-shadow: 0 0 0 3px rgba(124,108,240,0.12);
+        }
+        .form-group input::placeholder { color: #475569; }
+
+        /* ===== BOTÓN ===== */
         .btn-login {
             width: 100%;
             padding: 0.85rem;
@@ -58,25 +82,68 @@
         }
         .btn-login:hover { transform: scale(1.01); box-shadow: 0 6px 25px rgba(124,108,240,0.35); }
         .btn-login:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-        .error-msg { color: #f87171; font-size: 0.85rem; text-align: center; margin-top: 0.8rem; min-height: 1.5rem; }
-        .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.2); border-top: 2px solid #fff; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 0.5rem; }
+
+        /* ===== ERROR ===== */
+        .error-msg {
+            color: #f87171;
+            font-size: 0.85rem;
+            text-align: center;
+            margin-top: 0.8rem;
+            min-height: 1.5rem;
+        }
+
+        /* ===== SPINNER ===== */
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
         @keyframes spin { to { transform: rotate(360deg); } }
         .hidden { display: none !important; }
-        .footer { display: flex; justify-content: space-between; margin-top: 1.5rem; font-size: 0.85rem; }
-        .footer a { color: #94a3b8; text-decoration: none; }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+        }
+        .footer a { color: #94a3b8; text-decoration: none; transition: color 0.2s; }
         .footer a:hover { color: #a78bfa; }
-        .copyright { text-align: center; margin-top: 1.8rem; font-size: 0.7rem; color: #475569; border-top: 1px solid #2d3548; padding-top: 1.2rem; }
+
+        .copyright {
+            text-align: center;
+            margin-top: 1.8rem;
+            font-size: 0.7rem;
+            color: #475569;
+            border-top: 1px solid #2d3548;
+            padding-top: 1.2rem;
+        }
         .copyright span { color: #7c6cf0; font-weight: 600; }
-        @media (max-width: 480px) { .card { padding: 2rem 1.5rem; } .footer { flex-direction: column; align-items: center; gap: 0.5rem; } }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 480px) {
+            .card { padding: 2rem 1.5rem; }
+            .footer { flex-direction: column; align-items: center; gap: 0.5rem; }
+        }
     </style>
 </head>
 <body>
+
     <div class="card">
+        <!-- LOGO -->
         <div class="logo">
             <h1>Waevo<span>Hosting</span></h1>
             <p>Panel de control</p>
         </div>
 
+        <!-- FORMULARIO -->
         <form id="loginForm">
             <div class="form-group">
                 <label for="email">Correo electrónico</label>
@@ -93,6 +160,7 @@
             <div class="error-msg" id="errorMsg"></div>
         </form>
 
+        <!-- FOOTER -->
         <div class="footer">
             <a href="#" id="forgotLink">¿Olvidaste tu contraseña?</a>
             <a href="#" id="registerLink">Registrarse</a>
@@ -102,7 +170,13 @@
         </div>
     </div>
 
+    <!-- ============================================================ -->
+    <!-- SCRIPT DE LOGIN -->
+    <!-- ============================================================ -->
     <script>
+        // ============================================================
+        // REFERENCIAS
+        // ============================================================
         const form = document.getElementById('loginForm');
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
@@ -111,22 +185,29 @@
         const btnSpinner = document.getElementById('btnSpinner');
         const errorMsg = document.getElementById('errorMsg');
 
-        // Redirigir si ya está logueado
+        // ============================================================
+        // REDIRIGIR SI YA ESTÁ LOGUEADO
+        // ============================================================
         if (localStorage.getItem('waevohosting_token')) {
             window.location.href = '/dashboard.html';
         }
 
+        // ============================================================
+        // ENVÍO DEL FORMULARIO
+        // ============================================================
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const email = emailInput.value.trim();
             const password = passwordInput.value;
 
+            // Validar campos
             if (!email || !password) {
                 errorMsg.textContent = 'Debes completar todos los campos.';
                 return;
             }
 
+            // Deshabilitar botón y mostrar spinner
             loginBtn.disabled = true;
             btnText.textContent = 'Verificando...';
             btnSpinner.classList.remove('hidden');
@@ -134,10 +215,9 @@
 
             try {
                 // ============================================================
-                // ENVÍA LAS CREDENCIALES AL PROXY DE VERCEL
-                // (Esto evita la CSP de ngrok)
+                // ENVÍA LAS CREDENCIALES AL BACKEND (api/auth.js)
                 // ============================================================
-                const response = await fetch('/api/proxy', {
+                const response = await fetch('/api/auth', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -147,11 +227,12 @@
 
                 const data = await response.json();
 
-                if (response.ok) {
-                    // Si el login es exitoso, guardamos el token (si lo devuelve)
-                    if (data.token) {
-                        localStorage.setItem('waevohosting_token', data.token);
-                    }
+                if (response.ok && data.success) {
+                    // Guardar token y datos del usuario
+                    localStorage.setItem('waevohosting_token', data.token);
+                    localStorage.setItem('waevohosting_user', JSON.stringify(data.user));
+
+                    // Redirigir al dashboard
                     window.location.href = '/dashboard.html';
                 } else {
                     errorMsg.textContent = data.error || 'Credenciales incorrectas.';
@@ -160,26 +241,33 @@
                 console.error('Error en login:', error);
                 errorMsg.textContent = 'Error de conexión con el servidor. Inténtalo de nuevo.';
             } finally {
+                // Restaurar botón
                 loginBtn.disabled = false;
                 btnText.textContent = 'Iniciar sesión';
                 btnSpinner.classList.add('hidden');
             }
         });
 
-        // ENTER para enviar
+        // ============================================================
+        // ENTER PARA ENVIAR
+        // ============================================================
         passwordInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') form.dispatchEvent(new Event('submit'));
         });
 
-        // Enlaces (por ahora alertas)
+        // ============================================================
+        // ENLACES (por ahora alertas)
+        // ============================================================
         document.getElementById('forgotLink').addEventListener('click', (e) => {
             e.preventDefault();
             alert('🔐 Funcionalidad de restablecimiento de contraseña próximamente.');
         });
+
         document.getElementById('registerLink').addEventListener('click', (e) => {
             e.preventDefault();
             alert('📝 El registro se gestiona desde el panel de administración.');
         });
     </script>
+
 </body>
 </html>
