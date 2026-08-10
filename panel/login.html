@@ -135,13 +135,14 @@
             try {
                 // ============================================================
                 // ENVÍA LAS CREDENCIALES A LA URL DE NGROK (Pterodactyl)
+                // CON LA CABECERA PARA SALTAR LA ADVERTENCIA DE NGROK
                 // ============================================================
                 const response = await fetch('https://unending-jazz-bush.ngrok-free.dev/auth/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
-                        'ngrok-skip-browser-warning': 'true', // Evita la advertencia de ngrok
+                        'ngrok-skip-browser-warning': 'true', // <--- CABECERA CLAVE
                     },
                     body: JSON.stringify({ email, password }),
                 });
@@ -150,9 +151,6 @@
 
                 if (response.ok) {
                     // Si el login es exitoso, guardamos el token (si lo devuelve)
-                    // o simplemente redirigimos al dashboard.
-                    // Pterodactyl suele devolver una cookie de sesión.
-                    // Si devuelve un token, lo guardamos.
                     if (data.token) {
                         localStorage.setItem('waevohosting_token', data.token);
                     }
