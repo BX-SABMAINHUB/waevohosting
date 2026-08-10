@@ -1,167 +1,74 @@
-// api/auth.js - Login que valida contra Pterodactyl (con soporte ngrok)
+// panel/api/auth.js
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 
-// ============================================================
-// CONFIGURACIÓN (variables de entorno en Vercel)
-// ============================================================
 const PTERO_URL = process.env.PTERODACTYL_PANEL_URL;
 const PTERO_API_KEY = process.env.PTERODACTYL_API_KEY;
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// ============================================================
-// FUNCIÓN PRINCIPAL (Serverless Function)
-// ============================================================
 module.exports = async (req, res) => {
-    // Configurar CORS para el panel
-    res.setHeader('Access-Control-Allow-Origin', 'https://panel.waevohosting.es');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-    // Responder a preflight (OPTIONS)
     if (req.method === 'OPTIONS') {
+        res.setHeader('Access-Control-Allow-Origin', 'https://panel.waevohosting.es');
+        res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
         return res.status(200).end();
     }
 
-    // Solo permitir POST
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Método no permitido' });
     }
 
-    // Obtener credenciales del body
     const { email, password } = req.body;
 
-    // Validar que no estén vacíos
     if (!email || !password) {
-        return res.status(400).json({ error: 'Debes proporcionar email y contraseña' });
+        return res.status(400).json({ error: 'Faltan email o contraseña' });
     }
 
     try {
-        // ============================================================
-        // 1. AUTENTICAR CONTRA PTERODACTYL (endpoint /auth/login)
-        // ============================================================
-        console.log(`🔐 Intentando login para: ${email}`);
-
-        // Cabeceras necesarias para evitar la advertencia de ngrok
         const headers = {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'ngrok-skip-browser-warning': 'true', // <--- ¡CLAVE! Evita la página de advertencia
+            'ngrok-skip-browser-warning': 'true',
         };
 
-        const loginResponse = await axios.post(`${PTERO_URL}/auth/login`, {
-            email: email,
-            password: password
-        }, {
-            headers: headers,
-            // Permitir cookies y redirecciones
+        await axios.post(`${PTERO_URL}/auth/login`, { email, password }, {
+            headers,
             withCredentials: true,
-            // No seguir redirecciones (para capturar la cookie de sesión)
             maxRedirects: 0,
             validateStatus: (status) => status < 400
         });
 
-        // Si llegamos aquí, el login fue exitoso
-        console.log(`✅ Login exitoso para: ${email}`);
-
-        // Extraer cookies de sesión (si las hay)
-        const setCookie = loginResponse.headers['set-cookie'];
-        let pterodactylSession = null;
-        if (setCookie) {
-            pterodactylSession = setCookie.map(c => c.split(';')[0]).join('; ');
-            console.log(`🍪 Cookie de sesión obtenida: ${pterodactylSession}`);
-        }
-
-        // ============================================================
-        // 2. OBTENER DATOS DEL USUARIO DESDE APPLICATION API
-        // ============================================================
-        // Cabeceras para la API de Pterodactyl (también con ngrok-skip-browser-warning)
-        const apiHeaders = {
-            'Authorization': `Bearer ${PTERO_API_KEY}`,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'ngrok-skip-browser-warning': 'true', // <--- ¡CLAVE! También aquí
-        };
-
         const usersResponse = await axios.get(`${PTERO_URL}/api/application/users`, {
-            headers: apiHeaders
+            headers: {
+                'Authorization': `Bearer ${PTERO_API_KEY}`,
+                'Accept': 'application/json',
+                'ngrok-skip-browser-warning': 'true',
+            }
         });
 
-        // Buscar el usuario por email (coincidencia exacta, sin distinción de mayúsculas)
         const user = usersResponse.data.data.find(u => u.email.toLowerCase() === email.toLowerCase());
 
         if (!user) {
-            console.warn(`⚠️ Usuario ${email} no encontrado en la base de datos de Pterodactyl`);
-            return res.status(401).json({ error: 'Usuario no encontrado en el sistema' });
+            return res.status(401).json({ error: 'Usuario no encontrado' });
         }
 
-        console.log(`👤 Datos del usuario: ${user.email} (ID: ${user.id})`);
-
-        // ============================================================
-        // 3. GENERAR JWT PARA EL PANEL DE WAEVO
-        // ============================================================
-        const panelToken = jwt.sign(
-            {
-                id: user.id,
-                email: user.email,
-                username: user.username,
-                name: user.name || user.username,
-                first_name: user.first_name || '',
-                last_name: user.last_name || '',
-                // Guardamos la cookie de sesión para futuras peticiones
-                pterodactylSession: pterodactylSession
-            },
+        const token = jwt.sign(
+            { id: user.id, email: user.email, username: user.username },
             JWT_SECRET,
             { expiresIn: '24h' }
         );
 
-        // ============================================================
-        // 4. RESPONDER CON ÉXITO
-        // ============================================================
         res.status(200).json({
             success: true,
-            token: panelToken,
-            user: {
-                id: user.id,
-                email: user.email,
-                username: user.username,
-                name: user.name || user.username,
-                first_name: user.first_name || '',
-                last_name: user.last_name || '',
-                avatar: user.avatar || null,
-                language: user.language || 'en',
-                root_admin: user.root_admin || false,
-                two_factor: user.two_factor || false
-            },
-            session: pterodactylSession
+            token: token,
+            user: { id: user.id, email: user.email, username: user.username }
         });
 
     } catch (error) {
-        // ============================================================
-        // 5. MANEJO DE ERRORES
-        // ============================================================
-
-        // Si Pterodactyl devuelve 401 (credenciales incorrectas)
-        if (error.response && error.response.status === 401) {
-            console.warn(`❌ Credenciales incorrectas para: ${email}`);
+        if (error.response && (error.response.status === 401 || error.response.status === 302)) {
             return res.status(401).json({ error: 'Credenciales incorrectas' });
         }
-
-        // Si la redirección es a /auth/login (fallo de autenticación)
-        if (error.response && error.response.status === 302) {
-            console.warn(`❌ Redirección a login (credenciales incorrectas) para: ${email}`);
-            return res.status(401).json({ error: 'Credenciales incorrectas' });
-        }
-
-        // Error de conexión con el panel
-        console.error('❌ Error en login:', error.message);
-        if (error.response) {
-            console.error('📦 Respuesta del panel:', error.response.status, error.response.data);
-        }
-
-        res.status(500).json({
-            error: 'Error al conectar con el panel de Pterodactyl',
-            details: error.message
-        });
+        console.error('Error en login:', error.message);
+        res.status(500).json({ error: 'Error al conectar con el servidor' });
     }
 };
