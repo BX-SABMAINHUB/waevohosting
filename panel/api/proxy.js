@@ -1,5 +1,15 @@
-// api/proxy.js - Proxy para evitar la CSP de ngrok
+// panel/api/proxy.js - Proxy para ngrok con manejo de errores
 export default async function handler(req, res) {
+    // Configurar CORS
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    // Responder a preflight (OPTIONS)
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
     // Solo permitir POST
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Método no permitido' });
@@ -20,17 +30,32 @@ export default async function handler(req, res) {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'ngrok-skip-browser-warning': 'true', // Evita la advertencia de ngrok
+                'ngrok-skip-browser-warning': 'true',
             },
             body: JSON.stringify({ email, password }),
         });
 
-        const data = await response.json();
+        // Obtener la respuesta como texto primero (para depuración)
+        const text = await response.text();
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            console.error('Respuesta no es JSON:', text);
+            return res.status(500).json({
+                error: 'El servidor devolvió una respuesta no válida',
+                details: text.substring(0, 100),
+            });
+        }
 
-        // Devuelve la misma respuesta que ngrok
-        res.status(response.status).json(data);
+        // Devolver la respuesta
+        return res.status(response.status).json(data);
+
     } catch (error) {
-        console.error('Error en proxy:', error);
-        res.status(500).json({ error: 'Error al conectar con el servidor' });
+        console.error('Error en proxy:', error.message);
+        return res.status(500).json({
+            error: 'Error al conectar con el servidor',
+            details: error.message,
+        });
     }
 }
